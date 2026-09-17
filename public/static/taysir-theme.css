@@ -2119,9 +2119,18 @@ html[data-theme="dark"] .gd-card { background: #171923; }
    RTL NOTE: the document is `dir="rtl"`, so grid track 1 is the
    inline-START track, which the user sees on the RIGHT, and track 3
    is inline-END = the visual LEFT. `justify-self: start` likewise
-   resolves to the visual right. The three requested positions map
-   to: track 1 = hamburger (visual right), track 2 = brand (centre),
-   track 3 = theme toggle (visual left).
+   resolves to the visual right.
+
+   MIRRORED ROW: the row is now assigned the OPPOSITE tracks from
+   the original layout, using ONE mechanism — an explicit
+   `grid-column` on each of the three children, so DOM order is
+   untouched and no per-property override is scattered around.
+   The three positions now map to: track 1 (visual right) = theme
+   toggle, track 2 = brand (centre), track 3 (visual left) = desktop
+   nav + hamburger. Each child's `justify-self` is flipped with it so
+   it still hugs the OUTER edge of its own track. Nothing else moves:
+   the `1fr auto 1fr` tracks, the 72px height, the 8px gap and every
+   colour/font are exactly as before.
 
    §17.8b directly above is untouched: the toggle still matches
    `.site-header .header-actions .theme-toggle`, so its 62x32 lock
@@ -2164,7 +2173,10 @@ html[data-theme="dark"] .gd-card { background: #171923; }
   height: 72px; /* unchanged from §5 */
 }
 
-/* (3) VISUAL RIGHT (inline-start in RTL): desktop nav + hamburger.
+/* (3) VISUAL LEFT (inline-end in RTL) after the mirror: desktop nav
+   + hamburger, pinned to the LAST track via `grid-column: 3` and
+   `justify-self: end` so the cluster still sits against the outer
+   edge of the bar.
    `min-width: 0` lets this track shrink instead of pushing the
    brand off-centre when the nav is wide. `overflow: hidden` is the
    collision guard that makes that shrink safe: min-width alone lets
@@ -2178,12 +2190,17 @@ html[data-theme="dark"] .gd-card { background: #171923; }
   display: flex;
   align-items: center;
   gap: 8px;
-  justify-self: start;
+  grid-column: 3;
+  justify-self: end;
   min-width: 0;
   overflow: hidden;
 }
 
-/* (4) CENTRE: the brand. Rule (2) already does all the centring:
+/* (4) CENTRE: the brand. `grid-column: 2` is stated explicitly
+   because rules (3) and (5) now place their items definitely, and
+   an auto-placed brand would otherwise be dropped into the first
+   free track instead of the middle one.
+   Rule (2) already does all the centring:
    the two `1fr` side tracks absorb every bit of free space, so the
    `auto` middle track resolves to exactly the brand's max-content
    width and lands dead centre of the bar. No `justify-self` is
@@ -2194,13 +2211,19 @@ html[data-theme="dark"] .gd-card { background: #171923; }
    Font/size/colour still come from §5 `.brand` and the <=520px
    override. */
 .site-header.home-header .brand {
+  grid-column: 2;
   white-space: nowrap;
 }
 
-/* (5) VISUAL LEFT (inline-end in RTL): the theme toggle. Same flex
-   row as §5 `.header-actions`, just pinned to the end track. */
+/* (5) VISUAL RIGHT (inline-start in RTL) after the mirror: the theme
+   toggle. Same flex row as §5 `.header-actions`, just pinned to the
+   FIRST track now, hugging the bar's outer start edge. The button's
+   own internals — the 62x32 lock in §17.8b, its Lottie host, its
+   padding and its colours — are not referenced here and are
+   unchanged. */
 .site-header.home-header .header-actions {
-  justify-self: end;
+  grid-column: 1;
+  justify-self: start;
   min-width: 0;
 }
 
@@ -2398,14 +2421,14 @@ html[data-theme="dark"] .gd-card { background: #171923; }
    Everything below is keyed on `[data-open="true"]`, the flag
    prototype/script.js already toggles, which §5 turns into
    `display: flex`. So OPEN geometry = full-viewport fixed
-   root, 70vw right-anchored waves + panel; CLOSED geometry =
+   root, 70vw left-anchored waves + panel; CLOSED geometry =
    untouched. No off-canvas transform is introduced here — the
    layers sit at their final, open positions so 2C has a known
    destination to animate toward.
 
    RTL NOTE: the document is `<html dir="rtl">`, so the panel
    and the waves are anchored with the logical
-   `inset-inline-start: 0`, which resolves to the VISUAL RIGHT
+   `inset-inline-end: 0`, which resolves to the VISUAL LEFT
    edge in RTL (and would flip correctly if the page were ever
    served LTR).
 
@@ -2574,11 +2597,11 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
        transform-origin :198 sets `top center` so its scaleY
                         grows the dropdown downward from under
                         the nav bar. That anchor is wrong here:
-                        this menu is a right-edge slide-in, so it
-                        is reset to `right center` — the visual
-                        RIGHT edge, vertically centred, which is
+                        this menu is a left-edge slide-in, so it
+                        is reset to `left center` — the visual
+                        LEFT edge, vertically centred, which is
                         the edge the panel and waves enter from
-                        in this RTL layout. Resetting it now
+                        after the mirror. Resetting it now
                         keeps 2C's slide-in from being mis-
                         anchored to the top-centre point. */
   border-width: 0;
@@ -2589,7 +2612,7 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
   box-shadow: none;
   padding: 0;
   will-change: auto;
-  transform-origin: right center;
+  transform-origin: left center;
 }
 
 /* ---- 18.2  Scrim — backdrop area, lowest layer -----------
@@ -2597,8 +2620,8 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
 
    2B COLOUR: `rgba(12, 9, 22, 0.58)` — a violet-cast near-black
    at 58%, the reference's ~50-60% dim. Because the panel and
-   the waves cover the inline-start 70vw, the visible result is
-   the darkened ~30% strip on the visual LEFT that the design
+   the waves cover the inline-end 70vw, the visible result is
+   the darkened ~30% strip on the visual RIGHT that the design
    calls for, while the remaining 42% sits harmlessly UNDER the
    opaque panel. A single flat fill, no gradient, no blur: a
    `backdrop-filter` here would make this layer a containing
@@ -2620,15 +2643,20 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
 
 /* ---- 18.3  The four wave layers --------------------------
    Specificity 0-3-0. Full-height, 70vw wide, all four
-   anchored to the same inline-start (visual RIGHT in RTL)
+   anchored to the same inline-END (visual LEFT in RTL)
    edge, so they sit exactly on top of one another. 2B gives
    them their four graduated purple shades and 2C staggers
-   their slide-in. */
+   their slide-in.
+
+   MIRRORED: the anchor was `inset-inline-start: 0` (visual
+   RIGHT). It is now `inset-inline-end: 0`, the mirror edge,
+   which is the other half of the entry-side flip — §19.2's
+   parked transform flips sign to match. */
 .home-mobile-menu[data-open="true"] .mm-wave {
   position: absolute;
   top: 0;
   bottom: 0;
-  inset-inline-start: 0;
+  inset-inline-end: 0;
   width: 70vw;
 }
 
@@ -2643,7 +2671,7 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
    imply motion.
 
    EXPECTED IN 2B: with no animation yet, all four are
-   coincident at the same 70vw right-anchored box, so wave-4
+   coincident at the same 70vw left-anchored box, so wave-4
    (#4C1DCD, the darkest and the frontmost) is the only one
    actually visible, and it is itself almost entirely hidden
    behind the opaque panel that sits above it at z-index 6.
@@ -2662,8 +2690,9 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
 .home-mobile-menu[data-open="true"] .mm-wave-4 { z-index: 5; background: var(--mm-wave-4); }
 
 /* ---- 18.4  The panel — topmost layer ---------------------
-   Specificity 0-3-0. Same 70vw / full-height / right-anchored
-   box as the waves, but above all of them. A flex COLUMN so
+   Specificity 0-3-0. Same 70vw / full-height / left-anchored
+   box as the waves (mirrored: `inset-inline-start: 0` ->
+   `inset-inline-end: 0`), but above all of them. A flex COLUMN so
    `.mm-close` takes the top row and `nav.mm-links` flows
    below it. `overflow-y: auto` is layout insurance: on a very
    short viewport the link list scrolls inside the panel
@@ -2698,7 +2727,7 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
   position: absolute;
   top: 0;
   bottom: 0;
-  inset-inline-start: 0;
+  inset-inline-end: 0;
   width: 70vw;
   z-index: 6;
   display: flex;
@@ -2989,15 +3018,26 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
    SiteHeader.tsx, `.gd-topbar` or the internal pages.
 
    ── RTL / DIRECTION (deliberate — do not "fix") ───────────
-   The entrance is a PHYSICAL right-edge slide. `translateX()`
+   The entrance is a PHYSICAL left-edge slide. `translateX()`
    is a physical transform and is NOT flipped by `dir="rtl"`,
-   so `translateX(100%)` means "displaced to the right" in both
+   so `translateX(-100%)` means "displaced to the left" in both
    directions. §18 anchors the waves and the panel with
-   `inset-inline-start: 0`, which in this RTL document is the
-   VISUAL RIGHT edge. Together that parks each layer just off
-   the right edge of the viewport and slides it LEFTWARD into
+   `inset-inline-end: 0`, which in this RTL document is the
+   VISUAL LEFT edge. Together that parks each layer just off
+   the left edge of the viewport and slides it RIGHTWARD into
    place. This pairing of a physical transform with a logical
    inset is intentional and correct.
+
+   MIRRORED ENTRY SIDE: the pair was `translateX(100%)` +
+   `inset-inline-start: 0` (enter from the visual RIGHT). BOTH
+   halves are flipped together — the sign of the parked
+   transform AND the anchor offset — so the closed panel is
+   still fully off-screen (100% of its own 70vw width beyond
+   the new edge) and the open panel is still flush with it.
+   Every duration, easing token and stagger delay is
+   untouched: nothing in §19.1 / §20.1 encodes a side, and
+   the wave ladders encode DEPTH (back-to-front), not
+   direction, so they are left exactly as they were.
 
    ── PERFORMANCE (low-end phones over LTE) ─────────────────
    Pure CSS transitions. No JS animation, no library, no
@@ -3087,12 +3127,12 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
 }
 
 #mobile-menu.home-mobile-menu[data-open="true"] .mm-wave {
-  transform: translateX(100%);
+  transform: translateX(-100%);
   transition: transform var(--mm-dur-wave) var(--mm-ease-in);
 }
 
 #mobile-menu.home-mobile-menu[data-open="true"] .mm-panel {
-  transform: translateX(100%);
+  transform: translateX(-100%);
   transition: transform var(--mm-dur-panel) var(--mm-ease-in);
 }
 
