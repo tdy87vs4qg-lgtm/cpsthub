@@ -2766,7 +2766,7 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
    from the value set here. */
 .home-mobile-menu[data-open="true"] .mm-panel .mm-close {
   flex: 0 0 auto;
-  align-self: flex-end;
+  align-self: flex-start;
   display: flex;
   align-items: center;
   justify-content: center;

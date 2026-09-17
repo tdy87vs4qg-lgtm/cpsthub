@@ -49,13 +49,7 @@ export default function SiteHeader() {
 
   return (
     <header className={`site-header ${scrolled ? 'site-header--scrolled' : ''}`}>
-      {/* MIRRORED ROW. `flex-row-reverse` is the single mechanism: it flips the
-          main-axis direction of this one flex container, so the four clusters
-          (brand, desktop nav, desktop actions, mobile toggle+hamburger) all
-          land on the opposite side from before. DOM order, the Arabic labels,
-          `justify-between`, the gaps, the px/py padding and every button's
-          internals are untouched — only the axis direction changes. */}
-      <nav className="mx-auto flex flex-row-reverse max-w-7xl items-center justify-between px-5 py-4 lg:px-10" aria-label="التنقل الرئيسي">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-10" aria-label="التنقل الرئيسي">
         <Link to="/" className="brand-lockup group relative z-10" aria-label="تيسير — الرئيسية">
           <span className="brand-word">تيسير</span>
           <span className="brand-underscore" aria-hidden="true" />

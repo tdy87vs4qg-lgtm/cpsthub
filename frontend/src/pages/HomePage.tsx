@@ -175,13 +175,14 @@ export default function HomePage() {
 
       {/* ============ HEADER ============ */}
       {/* LAYOUT ONLY. The bar is a 3-track grid (see taysir-theme.css §17.8c):
-          hamburger on the visual RIGHT, "تيسير" visually CENTERED, and the
-          theme toggle left where it already was on the visual LEFT.
+          hamburger on the visual LEFT, "تيسير" visually CENTERED, and the
+          theme toggle on the visual RIGHT.
 
           The page is RTL (<html dir="rtl">), so the FIRST track is the
           inline-start track = the side the user sees on the RIGHT, and the
-          LAST track is the visual LEFT. DOM order below therefore reads
-          right -> centre -> left on screen.
+          LAST track is the visual LEFT. §17.8c places each child into a
+          track explicitly via `grid-column`, so DOM order below reads
+          left -> centre -> right on screen.
 
           The extra `home-header` class is a scoping hook, not a style: it lets
           §17.8c target THIS header with a higher-specificity selector, which is
@@ -201,7 +202,7 @@ export default function HomePage() {
           button with getElementById. */}
       <header className="site-header home-header">
         <div className="container header-inner">
-          {/* Visual RIGHT: desktop nav (hidden <=900px) + hamburger (shown <=900px) */}
+          {/* Visual LEFT: desktop nav (hidden <=900px) + hamburger (shown <=900px) */}
           <div className="header-lead">
             <nav className="nav-desktop" aria-label="التنقل الرئيسي">
               <a href="#hero">الرئيسية</a>
@@ -217,7 +218,7 @@ export default function HomePage() {
           {/* CENTER: the brand, centred in the bar on mobile and desktop */}
           <a href="#" className="brand">تيسير</a>
 
-          {/* Visual LEFT: theme toggle (unchanged markup, unchanged wrapper) */}
+          {/* Visual RIGHT: theme toggle (unchanged markup, unchanged wrapper) */}
           <div className="header-actions">
             {/* Theme toggle (sun / moon) */}
             <button type="button" className="theme-toggle" data-theme-toggle aria-label="التبديل إلى الوضع الليلي" aria-pressed="false" title="الوضع الليلي / النهاري">
