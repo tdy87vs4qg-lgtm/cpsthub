@@ -18,10 +18,10 @@
     "deploy:prod": "npm run build && wrangler pages deploy dist --project-name taysir",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "db:migrate:local": "wrangler d1 migrations apply bacyeswecan-production --local",
-    "db:migrate:prod": "wrangler d1 migrations apply bacyeswecan-production",
+    "db:migrate:prod": "echo 'Disabled: this fork has no database of its own and must never target bacyeswecan-production.' && exit 1",
     "db:seed:local": "wrangler d1 execute bacyeswecan-production --local --file=./seed.sql",
     "db:console:local": "wrangler d1 execute bacyeswecan-production --local",
-    "db:console:prod": "wrangler d1 execute bacyeswecan-production"
+    "db:console:prod": "echo 'Disabled: this fork has no database of its own and must never target bacyeswecan-production.' && exit 1"
   },
   "dependencies": {
     "hono": "^4.12.27"
