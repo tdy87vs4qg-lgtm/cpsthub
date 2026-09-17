@@ -1,14 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tayseer-bac",
+  "name": "cpsthub",
   "compatibility_date": "2026-04-26",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
     "nodejs_compat"
-  ],
+  ]
 
   // ------------------------------------------------------------------
-  // DEPLOY NOTE — existing project "tayseer-bac"
+  // DEPLOY NOTE — project "cpsthub"
   //
   // Env vars / secrets are ALREADY configured on the existing Pages project
   // (production environment) and are intentionally NOT redeclared here, so the
@@ -22,7 +22,7 @@
   //   The full Google Service Account JSON key, stored as an ENCRYPTED SECRET on
   //   the Pages project (production environment), on a single line:
   //
-  //     npx wrangler pages secret put GOOGLE_SERVICE_ACCOUNT_JSON --project-name tayseer-bac
+  //     npx wrangler pages secret put GOOGLE_SERVICE_ACCOUNT_JSON --project-name cpsthub
   //
   //   src/lib/drive.ts exchanges it for an OAuth2 bearer token (RS256-signed JWT
   //   via Web Crypto — see src/lib/google-auth.ts) with scope
@@ -63,21 +63,5 @@
   // Binding names must stay EXACTLY "DRIVE_CACHE" and "SESSIONS" — the code reads
   // env.DRIVE_CACHE / env.SESSIONS verbatim. KV namespace ids are not secrets.
   // ------------------------------------------------------------------
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "bacyeswecan-production",
-      "database_id": "be0dbb10-1f7a-4e9a-ad83-46a1a9795d5e"
-    }
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "DRIVE_CACHE",
-      "id": "e113de5eba324a0b829e0f236fb56b06"
-    },
-    {
-      "binding": "SESSIONS",
-      "id": "3af9370a2e1f4762b4fe16439f0d7e98"
-    }
-  ]
+  // REMOVED ON PURPOSE: the "d1_databases" and "kv_namespaces" blocks (DB, DRIVE_CACHE, SESSIONS) previously bound the live production resources and were deleted so this project cannot deploy to or write to them; they must be re-created against NEW resources owned by this project before any deploy.
 }
