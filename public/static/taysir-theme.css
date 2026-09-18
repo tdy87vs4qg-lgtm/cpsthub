@@ -3959,7 +3959,7 @@ html[data-theme="dark"] .subject-peek-list {
   /* Was 16px (inherited). Eased down slightly to sit with the
      smaller tile; the weight and colour are unchanged. */
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
