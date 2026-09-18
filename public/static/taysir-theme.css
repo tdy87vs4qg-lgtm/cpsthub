@@ -3095,6 +3095,51 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
   --mm-exit-total: calc(var(--mm-dur-panel) + var(--mm-step) * 3);
 }
 
+/* ---- 19.1b  The parked offset, as a direction-aware token -
+   `translateX()` is a PHYSICAL transform: it is never flipped
+   by `dir`. The anchor stays LOGICAL (`inset-inline-end: 0`
+   in §18.3 / §18.4 — deliberately NOT converted to
+   left/right), so the visual edge the layers are pinned to
+   moves when the document direction flips:
+
+     dir="rtl"  inline-end = visual LEFT  -> park LEFTWARD
+     dir="ltr"  inline-end = visual RIGHT -> park RIGHTWARD
+
+   A hard-coded `-100%` is therefore only correct in RTL; in
+   LTR it parks the layers ON TOP of the viewport instead of
+   off it, so the panel is visible while shut. `--mm-park`
+   carries the SIGN only — the magnitude is always 100% of the
+   layer's own 70vw width, i.e. exactly fully off-canvas past
+   whichever edge the logical anchor resolved to.
+
+   The unprefixed declaration is the RTL fallback, so an
+   ancestor with no `dir` attribute behaves exactly as before
+   this token existed.
+
+   SOURCE ORDER IS LOAD-BEARING. The shell still ships
+   `<html dir="rtl">` and only the `.app-shell` element flips
+   to `dir="ltr"` on the home route, so on that route BOTH
+   attribute selectors match (one via <html>, one via the
+   nearer shell) at the same 1-2-0 specificity. The tie is
+   broken by order, so the `[dir="ltr"]` rule is declared
+   LAST and wins wherever an LTR context exists. Do not
+   reorder these three blocks.
+
+   Nothing else is touched: no duration, no easing, no stagger
+   delay, no width, no z-index, no padding, no background, no
+   box-shadow, no colour, and no `.mm-close` rule. */
+#mobile-menu.home-mobile-menu {
+  --mm-park: -100%;
+}
+
+[dir="rtl"] #mobile-menu.home-mobile-menu {
+  --mm-park: -100%;
+}
+
+[dir="ltr"] #mobile-menu.home-mobile-menu {
+  --mm-park: 100%;
+}
+
 /* ---- 19.2  PARKED — on screen, layers off-canvas ---------
    Matches whenever the menu is RENDERED but not at rest:
    during the first frame of the opening (before `.mm-in` is
@@ -3127,12 +3172,12 @@ html[data-theme] .home-mobile-menu[data-open="true"] {
 }
 
 #mobile-menu.home-mobile-menu[data-open="true"] .mm-wave {
-  transform: translateX(-100%);
+  transform: translateX(var(--mm-park));
   transition: transform var(--mm-dur-wave) var(--mm-ease-in);
 }
 
 #mobile-menu.home-mobile-menu[data-open="true"] .mm-panel {
-  transform: translateX(-100%);
+  transform: translateX(var(--mm-park));
   transition: transform var(--mm-dur-panel) var(--mm-ease-in);
 }
 

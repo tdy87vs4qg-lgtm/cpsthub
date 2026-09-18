@@ -25,7 +25,7 @@ export default function App() {
   const isHomeRoute = location.pathname === '/'
 
   return (
-    <div className="app-shell min-h-screen overflow-x-hidden bg-ink text-white" dir="rtl">
+    <div className="app-shell min-h-screen overflow-x-hidden bg-ink text-white" dir={isHomeRoute ? 'ltr' : 'rtl'} lang={isHomeRoute ? 'en' : 'ar'}>
       <ScrollToTop />
       <AmbientBackdrop />
       {/* Shown ONLY inside an in-app browser (TikTok / Instagram / Facebook /
