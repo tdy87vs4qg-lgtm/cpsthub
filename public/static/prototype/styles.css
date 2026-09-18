@@ -259,7 +259,7 @@ p { margin: 0; color: var(--text); }
   content: '';
   position: absolute;
   bottom: -2px;
-  right: 0;
+  inset-inline-end: 0;
   height: 2px;
   width: 0;
   background: var(--purple);
@@ -704,8 +704,8 @@ p { margin: 0; color: var(--text); }
   background: transparent;
   opacity: 0.85;
 }
-.account-illu .illu-mini-a { bottom: 0; right: 0; }
-.account-illu .illu-mini-b { top: 10px; left: 0; width: 90px; }
+.account-illu .illu-mini-a { bottom: 0; inset-inline-end: 0; }
+.account-illu .illu-mini-b { top: 10px; inset-inline-start: 0; width: 90px; }
 
 .auth-card {
   background: var(--bg-elevated);
@@ -818,7 +818,7 @@ p { margin: 0; color: var(--text); }
   font-weight: 400;
   color: var(--text);
   outline: none;
-  text-align: right;
+  text-align: start;
 }
 .input-wrap input::placeholder { color: var(--text-mute); }
 
@@ -1125,7 +1125,7 @@ p { margin: 0; color: var(--text); }
   .hamburger { display: inline-flex; }
 
   .hero { padding: 48px 0 24px; }
-  .hero-grid { grid-template-columns: 1fr; gap: 24px; text-align: right; }
+  .hero-grid { grid-template-columns: 1fr; gap: 24px; text-align: start; }
   .hero-illu { order: -1; }
   .hero-illu img, .hero-illu svg { max-width: 320px; }
 
