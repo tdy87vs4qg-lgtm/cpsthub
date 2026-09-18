@@ -33,7 +33,7 @@ const PROTO = '/static/prototype'
 
 export default function HomePage() {
   // ── Sign-up tab step (LOCAL UI STATE ONLY) ──────────────────────────────
-  // 1 = the decorative الاسم / اللقب fields + "متابعة"
+  // 1 = the decorative First name / Last name fields + "Continue"
   // 2 = the real "Sign up with Google" button (same OAuth flow as login).
   // The two name fields are NEVER read, stored, or sent anywhere: no state
   // holds their values, no fetch is made, the backend and the database are
@@ -204,13 +204,13 @@ export default function HomePage() {
         <div className="container header-inner">
           {/* Visual LEFT: desktop nav (hidden <=900px) + hamburger (shown <=900px) */}
           <div className="header-lead">
-            <nav className="nav-desktop" aria-label="التنقل الرئيسي">
-              <a href="#hero">الرئيسية</a>
-              <a href="#guide">الإرشادات</a>
-              <a href="#account">تسجيل الدخول</a>
+            <nav className="nav-desktop" aria-label="Main navigation">
+              <a href="#hero">Home</a>
+              <a href="#guide">Guidance</a>
+              <a href="#account">Sign in</a>
             </nav>
 
-            <button className="hamburger" id="hamburger" aria-label="القائمة" aria-expanded="false" aria-controls="mobile-menu">
+            <button className="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
               <span></span><span></span><span></span>
             </button>
           </div>
@@ -221,7 +221,7 @@ export default function HomePage() {
           {/* Visual RIGHT: theme toggle (unchanged markup, unchanged wrapper) */}
           <div className="header-actions">
             {/* Theme toggle (sun / moon) */}
-            <button type="button" className="theme-toggle" data-theme-toggle aria-label="التبديل إلى الوضع الليلي" aria-pressed="false" title="الوضع الليلي / النهاري">
+            <button type="button" className="theme-toggle" data-theme-toggle aria-label="Switch to dark mode" aria-pressed="false" title="Dark mode / light mode">
               {/* Host for the decorative dotLottie sun<->moon animation. The
                   follower module (/static/theme-lottie.js) mounts its canvas in
                   here; if it never loads the span stays empty and the button
@@ -281,16 +281,16 @@ export default function HomePage() {
 
         {/* The white panel on top */}
         <div className="mm-panel">
-          <button type="button" className="mm-close" id="mm-close" aria-label="إغلاق القائمة">
+          <button type="button" className="mm-close" id="mm-close" aria-label="Close menu">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
 
-          <nav className="mm-links" aria-label="القائمة">
-            <a href="#hero"><span className="mm-link-label">الرئيسية</span><span className="mm-num" aria-hidden="true">01</span></a>
-            <a href="#guide"><span className="mm-link-label">الإرشادات</span><span className="mm-num" aria-hidden="true">02</span></a>
-            <a href="#account"><span className="mm-link-label">تسجيل الدخول</span><span className="mm-num" aria-hidden="true">03</span></a>
+          <nav className="mm-links" aria-label="Menu">
+            <a href="#hero"><span className="mm-link-label">Home</span><span className="mm-num" aria-hidden="true">01</span></a>
+            <a href="#guide"><span className="mm-link-label">Guidance</span><span className="mm-num" aria-hidden="true">02</span></a>
+            <a href="#account"><span className="mm-link-label">Sign in</span><span className="mm-num" aria-hidden="true">03</span></a>
           </nav>
         </div>
       </div>
@@ -301,21 +301,21 @@ export default function HomePage() {
         <section className="hero" id="hero">
           <div className="container hero-grid">
             <div className="hero-copy" data-reveal>
-              <h1>ادرس بهدوء، وحقّق هدفك.</h1>
-              <p className="lead">دروسك ومراجعاتك للبكالوريا في مكان واحد بسيط ومنظّم.</p>
+              <h1>Study calmly, and reach your goal.</h1>
+              <p className="lead">Your baccalaureate lessons and revision in one simple, organised place.</p>
               <div className="hero-cta">
                 <a href="#account" className="btn btn-primary">
-                  <span>ابدأ الآن</span>
+                  <span>Start now</span>
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M15 6l-6 6 6 6"/>
                   </svg>
                 </a>
-                <a href="#guide" className="btn btn-ghost">كيف يعمل؟</a>
+                <a href="#guide" className="btn btn-ghost">How does it work?</a>
               </div>
             </div>
 
             <div className="hero-illu">
-              <img src={`${PROTO}/assets/svg/book-lover.svg`} alt="طالب يقرأ كتاباً" width="480" height="480" className="float-illu float-a" data-reveal />
+              <img src={`${PROTO}/assets/svg/book-lover.svg`} alt="A student reading a book" width="480" height="480" className="float-illu float-a" data-reveal />
             </div>
           </div>
         </section>
@@ -339,14 +339,14 @@ export default function HomePage() {
         <section className="guide" id="guide">
           <div className="container">
             <div className="section-head" data-reveal>
-              <h2>الإرشادات</h2>
-              <p>أربع خطوات فقط لتبدأ استعمال تيسير.</p>
+              <h2>Guidance</h2>
+              <p>Only four steps to start using تيسير.</p>
             </div>
 
             <div className="guide-grid">
               {/* Left: illustration */}
               <div className="guide-illu">
-                <img src={`${PROTO}/assets/svg/professor.svg`} alt="أستاذ يشرح الدرس" width="440" height="440" className="float-illu float-f" data-reveal />
+                <img src={`${PROTO}/assets/svg/professor.svg`} alt="A teacher explaining the lesson" width="440" height="440" className="float-illu float-f" data-reveal />
               </div>
 
               {/* Right: steps */}
@@ -357,8 +357,8 @@ export default function HomePage() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   </div>
                   <div className="step-body">
-                    <h3>أنشئ حسابك</h3>
-                    <p>سجّل حساباً جديداً بخطوات بسيطة.</p>
+                    <h3>Create your account</h3>
+                    <p>Register a new account in a few simple steps.</p>
                   </div>
                 </li>
 
@@ -368,8 +368,8 @@ export default function HomePage() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                   </div>
                   <div className="step-body">
-                    <h3>اختر المادة</h3>
-                    <p>تصفّح المواد المتاحة واختر ما يناسبك.</p>
+                    <h3>Choose the subject</h3>
+                    <p>Browse the available subjects and choose the one that suits you.</p>
                   </div>
                 </li>
 
@@ -379,8 +379,8 @@ export default function HomePage() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   </div>
                   <div className="step-body">
-                    <h3>افتح الدرس</h3>
-                    <p>راجع الدروس والملخصات بكل هدوء.</p>
+                    <h3>Open the lesson</h3>
+                    <p>Review the lessons and summaries in complete calm.</p>
                   </div>
                 </li>
 
@@ -390,8 +390,8 @@ export default function HomePage() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
                   </div>
                   <div className="step-body">
-                    <h3>تابع تقدّمك</h3>
-                    <p>راقب ما أنجزت وواصل تعلّمك بثقة.</p>
+                    <h3>Track your progress</h3>
+                    <p>Keep an eye on what you have completed and carry on learning with confidence.</p>
                   </div>
                 </li>
               </ol>
@@ -403,21 +403,21 @@ export default function HomePage() {
         <section className="account" id="account">
           <div className="container">
             <div className="section-head" data-reveal>
-              <h2>ابدأ رحلتك مع تيسير</h2>
-              <p>سجّل الدخول أو أنشئ حساباً جديداً في ثوانٍ.</p>
+              <h2>Start your journey with تيسير</h2>
+              <p>Sign in or create a new account in seconds.</p>
             </div>
 
             <div className="account-grid">
               <div className="account-illu">
-                <img src={`${PROTO}/assets/svg/authentication.svg`} alt="تسجيل الدخول" className="illu-primary float-illu float-g" width="460" height="460" data-reveal />
+                <img src={`${PROTO}/assets/svg/authentication.svg`} alt="Signing in" className="illu-primary float-illu float-g" width="460" height="460" data-reveal />
                 <img src={`${PROTO}/assets/svg/unlock.svg`} alt="" className="illu-mini illu-mini-a float-illu float-h" width="110" height="110" />
                 <img src={`${PROTO}/assets/svg/read-notes.svg`} alt="" className="illu-mini illu-mini-b float-illu float-i" width="90" height="90" />
               </div>
 
               <div className="auth-card">
                 <div className="tabs" role="tablist">
-                  <button className="tab active" data-tab="login" role="tab" aria-selected="true">تسجيل الدخول</button>
-                  <button className="tab" data-tab="signup" role="tab" aria-selected="false">إنشاء حساب</button>
+                  <button className="tab active" data-tab="login" role="tab" aria-selected="true">Sign in</button>
+                  <button className="tab" data-tab="signup" role="tab" aria-selected="false">Create an account</button>
                 </div>
 
                 {/* LOGIN TAB — real Google OAuth, no fake fields.
@@ -427,7 +427,7 @@ export default function HomePage() {
                     renders it never rewrites the attribute, so the vanilla
                     tab switching keeps working exactly as designed. */}
                 <div className="tab-panel active" data-panel="login">
-                  <p className="auth-note">سجّل دخولك بحساب Google — بخطوة واحدة، دون كلمة مرور.</p>
+                  <p className="auth-note">Sign in with your Google account — in one step, with no password.</p>
                   <GoogleSignInButton />
                 </div>
 
@@ -445,36 +445,36 @@ export default function HomePage() {
                       }}
                     >
                       <label className="field">
-                        <span className="field-label">الاسم</span>
+                        <span className="field-label">First name</span>
                         <div className="input-wrap">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                          <input type="text" name="decorative-first-name" placeholder="الاسم" autoComplete="off" />
+                          <input type="text" name="decorative-first-name" placeholder="First name" autoComplete="off" />
                         </div>
                       </label>
 
                       <label className="field">
-                        <span className="field-label">اللقب</span>
+                        <span className="field-label">Last name</span>
                         <div className="input-wrap">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                          <input type="text" name="decorative-last-name" placeholder="اللقب" autoComplete="off" />
+                          <input type="text" name="decorative-last-name" placeholder="Last name" autoComplete="off" />
                         </div>
                       </label>
 
-                      <button type="submit" className="btn btn-primary btn-block">متابعة</button>
+                      <button type="submit" className="btn btn-primary btn-block">Continue</button>
                     </form>
                   ) : (
                     <div className="auth-step">
-                      <p className="auth-note">أكمل إنشاء حسابك بحساب Google — بخطوة واحدة، دون كلمة مرور.</p>
+                      <p className="auth-note">Finish creating your account with your Google account — in one step, with no password.</p>
                       <GoogleSignInButton
-                        label="أنشئ حسابك بحساب Google"
-                        ariaLabel="أنشئ حسابك بحساب Google"
+                        label="Create your account with your Google account"
+                        ariaLabel="Create your account with your Google account"
                       />
                       <button
                         type="button"
                         className="link auth-back"
                         onClick={() => setSignupStep(1)}
                       >
-                        رجوع
+                        Back
                       </button>
                     </div>
                   )}
@@ -492,17 +492,17 @@ export default function HomePage() {
           <div className="footer-top">
             <div className="footer-brand">
               <div className="brand-white">تيسير</div>
-              <p>منصة الدراسة للبكالوريا.</p>
+              <p>The study platform for the baccalaureate.</p>
             </div>
 
-            <nav className="footer-links" aria-label="روابط">
-              <a href="#hero">الرئيسية</a>
-              <a href="#guide">الإرشادات</a>
-              <a href="#account">تسجيل الدخول</a>
-              <a href="#">تواصل معنا</a>
+            <nav className="footer-links" aria-label="Links">
+              <a href="#hero">Home</a>
+              <a href="#guide">Guidance</a>
+              <a href="#account">Sign in</a>
+              <a href="#">Contact us</a>
             </nav>
 
-            <div className="footer-social" aria-label="شبكاتنا">
+            <div className="footer-social" aria-label="Our social networks">
               <a href="#" aria-label="Instagram">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
               </a>
@@ -519,7 +519,7 @@ export default function HomePage() {
           </div>
 
           <div className="footer-bottom">
-            <span>© 2026 تيسير. جميع الحقوق محفوظة.</span>
+            <span>© 2026 تيسير. All rights reserved.</span>
           </div>
         </div>
       </footer>
