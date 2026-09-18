@@ -2165,13 +2165,58 @@ html[data-theme="dark"] .gd-card { background: #171923; }
    centre of the bar — the brand is therefore optically centred on
    mobile AND desktop, independently of how wide the nav or the
    toggle happen to be. Replaces the inherited
-   `justify-content: space-between` flex row from §5. */
+   `justify-content: space-between` flex row from §5.
+
+   `align-items: center` centres each item WITHIN ITS OWN ROW. That
+   is necessary but not sufficient: the three children must also
+   share ONE row, which rules (3)/(4)/(5) now pin explicitly with
+   `grid-row: 1`. See the note on those rules for why. */
 .site-header.home-header .header-inner {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   height: 72px; /* unchanged from §5 */
 }
+
+/* WHY EACH CHILD BELOW ALSO CARRIES `grid-row: 1`
+   THE BUG: the three header items were not vertically aligned with
+   one another — measured at 1280px, relative to the bar's centre
+   line, the nav/hamburger sat -36.00px, the brand -12.20px and the
+   toggle +27.59px. The brand was not merely offset by its own
+   line-height; the items were on THREE SEPARATE ROWS.
+
+   CAUSE: rules (3)/(4)/(5) each set `grid-column` but no
+   `grid-row`. An item with a definite column and an auto row is
+   placed by the auto-placement algorithm, which — with the default
+   sparse `grid-auto-flow: row` — never moves back up to a row it
+   has already passed. Processing the children in DOM order
+   (`.header-lead` col 3, `.brand` col 2, `.header-actions` col 1)
+   the column cursor moves backwards each time, so each item was
+   pushed into a NEW implicit row. The used value of
+   `grid-template-rows` was literally `0px 47.5938px 32px` — three
+   rows totalling 79.59px inside a 72px bar.
+
+   WHY `align-items: center` IN RULE (2) COULD NOT FIX IT:
+   `align-items` aligns each item inside ITS OWN row's area, and
+   each item was alone in its own row, so all three were already
+   perfectly "centred" — just centred on three different rows.
+   `align-self: center` on the children is the same property and is
+   therefore equally ineffective (verified: offsets unchanged at
+   -36.00/-12.20/+27.59).
+
+   FIX: pin all three to row 1 with `grid-row: 1`. The implicit rows
+   collapse to a single `72px` row and all three items centre on the
+   same line (measured offsets 0.00/0.00/0.00 at 1280/900/430px).
+   This changes no `grid-column`, no font-size, no colour, no
+   padding, no width and no gap; the `1fr auto 1fr` tracks, the
+   mirrored track assignment and every `justify-self` are untouched,
+   so the horizontal layout is bit-identical.
+
+   `line-height: 1` on `.brand` is deliberately NOT added: it is not
+   needed once the rows collapse (it would only shift the brand's
+   glyph ink by a further 0.2px at 28px / 0.41px at 24px, while
+   shrinking the element box from 47.59px to 28px), and this file's
+   brief forbids touching font metrics unnecessarily. */
 
 /* (3) VISUAL LEFT (inline-end in RTL) after the mirror: desktop nav
    + hamburger, pinned to the LAST track via `grid-column: 3` and
@@ -2191,6 +2236,7 @@ html[data-theme="dark"] .gd-card { background: #171923; }
   align-items: center;
   gap: 8px;
   grid-column: 3;
+  grid-row: 1;
   justify-self: end;
   min-width: 0;
   overflow: hidden;
@@ -2212,6 +2258,7 @@ html[data-theme="dark"] .gd-card { background: #171923; }
    override. */
 .site-header.home-header .brand {
   grid-column: 2;
+  grid-row: 1;
   white-space: nowrap;
 }
 
@@ -2223,6 +2270,7 @@ html[data-theme="dark"] .gd-card { background: #171923; }
    unchanged. */
 .site-header.home-header .header-actions {
   grid-column: 1;
+  grid-row: 1;
   justify-self: start;
   min-width: 0;
 }
