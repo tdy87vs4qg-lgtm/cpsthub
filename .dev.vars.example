@@ -11,7 +11,7 @@ GOOGLE_SERVICE_ACCOUNT_JSON=
 # FALLBACK ONLY: a plain API key. Used just when GOOGLE_SERVICE_ACCOUNT_JSON is
 # absent, and it can only ever read PUBLICLY shared files.
 GOOGLE_API_KEY=
-DRIVE_FOLDER_ID=1U1ZAJnNY6cZ9cC-sW05i7duZEPO-SL2M
+DRIVE_FOLDER_ID=1hZNdWjagdi7Zo3TNaWHk4S2Ztae3q7Pv
 # Secondary Drive folder holding the shortcut targets (additional allowed source).
 SECONDARY_DRIVE_FOLDER_ID=1rLZJwRVGblUvAulzcEFT6T9xZ94ChzkQ
 SITE_ORIGIN=

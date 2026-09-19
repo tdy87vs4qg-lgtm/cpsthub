@@ -290,7 +290,7 @@ credential read from the environment and the Google API key kept strictly server
 
 - **Secrets from env** — `GOOGLE_API_KEY`, `DRIVE_ROOT_FOLDER_ID`, `SESSION_SECRET`,
   `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD`. `DRIVE_ROOT_FOLDER_ID` ships as a non-secret
-  `vars` entry (`1U1ZAJnNY6cZ9cC-sW05i7duZEPO-SL2M`); the other four are Cloudflare Pages
+  `vars` entry (`1hZNdWjagdi7Zo3TNaWHk4S2Ztae3q7Pv`); the other four are Cloudflare Pages
   secrets. Nothing is hardcoded and the API key never reaches the browser.
 - **Env-driven admin bootstrap** — new `seedAdminFromEnv()` in `src/lib/users.ts`, hooked into
   `POST /api/auth/login`. On the first login with `ADMIN_SEED_EMAIL` it idempotently provisions
@@ -613,7 +613,7 @@ Names only; see `.env.example` and `.dev.vars.example`. **Never commit values.**
 | `SESSION_SECRET` | **secret** | Random 32+ byte secret keying session-token HMAC digests. |
 | `ADMIN_SEED_EMAIL` | **secret** | Email of the first admin, provisioned on first login. |
 | `ADMIN_SEED_PASSWORD` | **secret** | Password of the first admin (used only to bootstrap). |
-| `DRIVE_ROOT_FOLDER_ID` | var | Root library folder id (not sensitive; shipped in `wrangler.jsonc` `vars` = `1U1ZAJnNY6cZ9cC-sW05i7duZEPO-SL2M`). |
+| `DRIVE_ROOT_FOLDER_ID` | var | Root library folder id (not sensitive; shipped in `wrangler.jsonc` `vars` = `1hZNdWjagdi7Zo3TNaWHk4S2Ztae3q7Pv`). |
 | `SITE_ORIGIN` | var | Canonical origin for the CORS lock (optional). |
 
 **Production secrets** (values live only in Cloudflare, never in the repo):
