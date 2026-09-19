@@ -4078,3 +4078,37 @@ html[data-theme="dark"] .subject-peek-list {
 html[data-theme="dark"] .subject-peek-list::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--text) 26%, transparent);
 }
+
+/* ==========================================================
+   §22 — HOME ACCOUNT SECTION, SINGLE-COLUMN VARIANT
+   (append-only)
+
+   The #account section used to be a 1fr 1fr grid: illustration
+   on one side, sign-in / sign-up card on the other. The card is
+   gone, so the bare `.account-grid` would leave the illustration
+   pinned to one half of the container with an empty half beside
+   it. `account-grid--solo` (added on that same element in
+   frontend/src/pages/HomePage.tsx) collapses the grid to one
+   centred column and caps the illustration's width so the
+   section still reads as a deliberate, balanced block.
+
+   SPECIFICITY: `.account .account-grid--solo` is (0,2,0). The
+   plain `.account-grid` rules live in BOTH this file and the
+   vendored /static/prototype/styles.css, and HomePage.tsx
+   injects the prototype sheet at runtime so it lands last in
+   <head> and wins any equal-specificity selector. The two-class
+   descendant selector outranks both regardless of load order —
+   the same reasoning as §17.8b / §17.8c.
+
+   Nothing else is touched: `.account` padding, the float-illu
+   animations, the illu-mini positions, the dark-mode illustration
+   recolouring (§ above) and the <=900px stacking all still apply. */
+.account .account-grid--solo {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 0;
+}
+.account .account-grid--solo .account-illu {
+  width: 100%;
+  max-width: 560px;
+}

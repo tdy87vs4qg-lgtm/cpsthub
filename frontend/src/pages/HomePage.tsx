@@ -28,13 +28,6 @@ import { useEffect, useState } from 'react'
 const PROTO = '/static/prototype'
 
 export default function HomePage() {
-  // ── Sign-up tab step (LOCAL UI STATE ONLY) ──────────────────────────────
-  // 1 = the decorative First name / Last name fields + "Continue"
-  // 2 = the link through to the real sign-up page.
-  // The two name fields are NEVER read, stored, or sent anywhere: no state
-  // holds their values, no fetch is made, the backend and the database are
-  // not involved at all. They exist purely for the visual flow.
-  const [signupStep, setSignupStep] = useState<1 | 2>(1)
   // Load the prototype's exact styles.css + script.js (and its Almarai font
   // links) for as long as this page is on screen, then clean them up again.
   // The files themselves are the prototype's originals, unmodified.
@@ -203,7 +196,6 @@ export default function HomePage() {
             <nav className="nav-desktop" aria-label="Main navigation">
               <a href="#hero">Home</a>
               <a href="#guide">Guidance</a>
-              <a href="#account">Sign in</a>
             </nav>
 
             <button className="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
@@ -286,7 +278,6 @@ export default function HomePage() {
           <nav className="mm-links" aria-label="Menu">
             <a href="#hero"><span className="mm-link-label">Home</span><span className="mm-num" aria-hidden="true">01</span></a>
             <a href="#guide"><span className="mm-link-label">Guidance</span><span className="mm-num" aria-hidden="true">02</span></a>
-            <a href="#account"><span className="mm-link-label">Sign in</span><span className="mm-num" aria-hidden="true">03</span></a>
           </nav>
         </div>
       </div>
@@ -395,91 +386,23 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ============ ACCOUNT / LOGIN ============ */}
+        {/* ============ ACCOUNT ============
+            The sign-in / sign-up card that used to fill the second column was
+            removed. The section is kept, and `account-grid--solo` (§22 of
+            /static/taysir-theme.css) collapses the two-column grid to one
+            centred column so the illustration is not stranded beside a gap. */}
         <section className="account" id="account">
           <div className="container">
             <div className="section-head" data-reveal>
               <h2>Start your journey with تيسير</h2>
-              <p>Sign in or create a new account in seconds.</p>
+              <p>Your baccalaureate lessons and revision, gathered in one calm place.</p>
             </div>
 
-            <div className="account-grid">
+            <div className="account-grid account-grid--solo">
               <div className="account-illu">
-                <img src={`${PROTO}/assets/svg/authentication.svg`} alt="Signing in" className="illu-primary float-illu float-g" width="460" height="460" data-reveal />
+                <img src={`${PROTO}/assets/svg/authentication.svg`} alt="A student getting started" className="illu-primary float-illu float-g" width="460" height="460" data-reveal />
                 <img src={`${PROTO}/assets/svg/unlock.svg`} alt="" className="illu-mini illu-mini-a float-illu float-h" width="110" height="110" />
                 <img src={`${PROTO}/assets/svg/read-notes.svg`} alt="" className="illu-mini illu-mini-b float-illu float-i" width="90" height="90" />
-              </div>
-
-              <div className="auth-card">
-                <div className="tabs" role="tablist">
-                  <button className="tab active" data-tab="login" role="tab" aria-selected="true">Sign in</button>
-                  <button className="tab" data-tab="signup" role="tab" aria-selected="false">Create an account</button>
-                </div>
-
-                {/* LOGIN TAB — links through to the real sign-in page.
-                    NOTE: className is a CONSTANT string on purpose. The
-                    prototype's own script.js owns the .active class on the
-                    panels; because React never changes this prop between
-                    renders it never rewrites the attribute, so the vanilla
-                    tab switching keeps working exactly as designed. */}
-                <div className="tab-panel active" data-panel="login">
-                  <p className="auth-note">Sign in to تيسير with your email address and password.</p>
-                  <a className="btn btn-primary btn-block" href="/login" rel="external" data-no-spa="true">Sign in</a>
-                </div>
-
-                {/* SIGNUP TAB — step 1 (decorative name fields) → step 2 (link to the sign-up page) */}
-                <div className="tab-panel" data-panel="signup">
-                  {signupStep === 1 ? (
-                    <form
-                      className="auth-step"
-                      /* DECORATIVE ONLY: nothing is read from these inputs and
-                         nothing is submitted. The handler just advances the
-                         local UI step — no fetch, no backend, no database. */
-                      onSubmit={(event) => {
-                        event.preventDefault()
-                        setSignupStep(2)
-                      }}
-                    >
-                      <label className="field">
-                        <span className="field-label">First name</span>
-                        <div className="input-wrap">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                          <input type="text" name="decorative-first-name" placeholder="First name" autoComplete="off" />
-                        </div>
-                      </label>
-
-                      <label className="field">
-                        <span className="field-label">Last name</span>
-                        <div className="input-wrap">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                          <input type="text" name="decorative-last-name" placeholder="Last name" autoComplete="off" />
-                        </div>
-                      </label>
-
-                      <button type="submit" className="btn btn-primary btn-block">Continue</button>
-                    </form>
-                  ) : (
-                    <div className="auth-step">
-                      <p className="auth-note">Finish creating your account on the sign-up page.</p>
-                      <a
-                        className="btn btn-primary btn-block"
-                        href="/signup"
-                        rel="external"
-                        data-no-spa="true"
-                        aria-label="Create your account"
-                      >
-                        Create your account
-                      </a>
-                      <button
-                        type="button"
-                        className="link auth-back"
-                        onClick={() => setSignupStep(1)}
-                      >
-                        Back
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </div>
@@ -499,7 +422,6 @@ export default function HomePage() {
             <nav className="footer-links" aria-label="Links">
               <a href="#hero">Home</a>
               <a href="#guide">Guidance</a>
-              <a href="#account">Sign in</a>
               <a href="#">Contact us</a>
             </nav>
 

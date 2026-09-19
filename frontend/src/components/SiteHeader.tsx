@@ -1,4 +1,4 @@
-import { ArrowLeft, BookOpenCheck, Menu, X } from 'lucide-react'
+import { BookOpenCheck, Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
@@ -14,10 +14,9 @@ export default function SiteHeader() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
-  // Fix #1: restore + reflect the server session on load. When a valid
-  // bac_session cookie exists the header shows a "go to library" affordance and
-  // hides the login/signup buttons, so a refresh / return no longer looks like
-  // a logout. Hitting /me here also slides the session + cookie forward.
+  // Restore + reflect the server session on load. When a valid bac_session
+  // cookie exists the header shows a "go to library" affordance. Hitting /me
+  // here also slides the session + cookie forward.
   const session = useSession()
   // Signed-in destination (admins → console, everyone else → library).
   const dest = session.destination || '/library'
@@ -64,21 +63,14 @@ export default function SiteHeader() {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <ThemeToggle className="ml-1" />
-          {session.authenticated ? (
+          {/* ml-1 only separated the toggle from the removed auth buttons. */}
+          <ThemeToggle />
+          {session.authenticated && (
             // Logged-in: a single affordance back into the internal experience.
             // A full navigation hands control to the Hono-rendered library/console.
             <a href={dest} className="button-primary button-primary--small">
               <BookOpenCheck size={16} /> {session.user?.role === 'admin' ? 'لوحة التحكم' : 'إلى المكتبة'}
             </a>
-          ) : (
-            // Logged-out (or still resolving): show sign-in / start actions.
-            <>
-              <Link to="/login" className="button-ghost">تسجيل الدخول</Link>
-              <Link to="/signup" className="button-primary button-primary--small">
-                ابدأ الآن <ArrowLeft size={16} />
-              </Link>
-            </>
           )}
         </div>
 
@@ -117,11 +109,10 @@ export default function SiteHeader() {
               transition={{ type: 'spring', stiffness: 420, damping: 34, mass: 0.7 }}
             >
               {(session.authenticated
-                // Logged-in: primary nav + a single "go to library/console" link,
-                // login/signup hidden.
+                // Logged-in: primary nav + a single "go to library/console" link.
                 ? [...links, { to: dest, label: session.user?.role === 'admin' ? 'لوحة التحكم' : 'إلى المكتبة' }]
-                // Logged-out: primary nav + login/signup.
-                : [...links, { to: '/login', label: 'تسجيل الدخول' }, { to: '/signup', label: 'إنشاء حساب' }]
+                // Logged-out: primary nav only.
+                : links
               ).map((link, i) => (
                 <M.div
                   key={link.to}
