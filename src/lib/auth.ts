@@ -90,19 +90,24 @@ export async function isSubscriber<E extends HonoEnv = { Bindings: Env }>(
 /**
  * Whether the current request may OPEN FILES.
  *
- * Under the open-signup + admin-approval model, merely having a live session is
- * no longer enough to unlock files: a self-registered account can log in and
- * browse everything, but every file stays locked until an admin approves it.
- * File access therefore requires an active account that is EITHER an admin
- * (always entitled) OR an approved subscriber. This is the single seam the
- * `locked` flag and the content guard both key off.
+ * THE LIBRARY IS NOW FULLY PUBLIC — this is deliberate, not an oversight.
+ * The platform is free and has no visitor accounts, so there is nobody left to
+ * be "approved": every visitor, signed in or not, is entitled to open every
+ * file. This helper therefore answers true unconditionally.
+ *
+ * It is kept (rather than deleted) because it is the single seam that both the
+ * per-file `locked` flag in the listings and the content guard key off; keeping
+ * it means the whole entitlement decision stays in ONE place. With it pinned to
+ * true, `locked` is false everywhere and the subscription UI — still present in
+ * the client for now — simply never fires.
+ *
+ * NOTE: it no longer reads the session at all, which also spares every public
+ * listing request a KV/D1 session lookup.
  */
 export async function isApproved<E extends HonoEnv = { Bindings: Env }>(
-  c: Context<E>
+  _c: Context<E>
 ): Promise<boolean> {
-  const user = await getSessionUser(c)
-  if (!user || user.status !== 'active') return false
-  return user.role === 'admin' || user.approved === true
+  return true
 }
 
 /**

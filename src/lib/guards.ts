@@ -11,8 +11,9 @@
 // Exposed guards:
 //   • requireAuth               — 401 unless a valid, live session exists.
 //   • requireRole('admin'|…)    — 401 if unauthenticated, 403 if wrong role.
-//   • requireActiveSubscriber   — a live session whose account is active
-//                                 (subscriber OR admin — admins are a superset).
+//   • requireActiveSubscriber   — the file-access gate. NOW A PASS-THROUGH:
+//                                 the library is deliberately public, so it
+//                                 admits every visitor (see its own note).
 //
 // Because validateSession already returns null for suspended accounts AND for
 // sessions that were revoked (deactivation deletes them from D1+KV), a just-
@@ -87,39 +88,22 @@ export function requireRole(role: Role) {
 }
 
 /**
- * requireActiveSubscriber — a live session on an ACTIVE account that is
- * entitled to OPEN FILES.
+ * requireActiveSubscriber — THE FILE-ACCESS GATE, NOW FULLY OPEN.
  *
- * Under the open-signup + admin-approval model this now means: an active admin
- * (always entitled) OR an active subscriber whom an admin has APPROVED. A
- * self-registered but not-yet-approved account has a perfectly valid live
- * session and can browse everything, but it is NOT entitled to file content —
- * it is denied here (FORBIDDEN), which the content routes reshape into the
- * SUBSCRIPTION_REQUIRED signal the UI uses to open the contact popup.
+ * The library is public on purpose: the platform is free and has no visitor
+ * accounts, so there is no subscription, approval or sign-in left to check
+ * before serving file content. This middleware consequently admits EVERY
+ * request — anonymous or not — and simply calls next().
  *
- * The name is kept for backwards compatibility with existing callers; the
- * meaning is "entitled to open files".
+ * It is intentionally kept as a middleware rather than removed so that the
+ * file-access decision still has exactly one home: every content route and the
+ * viewer page continue to funnel through here, which is where a future gate
+ * (e.g. an abuse guard) would be reintroduced without re-plumbing callers.
+ *
+ * No user is placed on the context: there may not be one, and every downstream
+ * handler behind this guard serves the same bytes to everybody regardless.
+ * (requireAuth / requireRole are UNCHANGED and still protect the admin area.)
  */
-export async function requireActiveSubscriber(c: AuthContext, next: Next) {
-  const user = await getSessionUser(c)
-  if (!user) {
-    return deny(c, 401, 'UNAUTHENTICATED', 'Please sign in to access the library.')
-  }
-  if (user.status !== 'active') {
-    return deny(c, 403, 'ACCOUNT_SUSPENDED', 'This account has been deactivated.')
-  }
-  if (user.role !== 'subscriber' && user.role !== 'admin') {
-    return deny(c, 403, 'FORBIDDEN', 'An active subscription is required.')
-  }
-  // Admins are always entitled; subscribers must be approved by an admin.
-  if (user.role !== 'admin' && user.approved !== true) {
-    return deny(
-      c,
-      403,
-      'NOT_APPROVED',
-      'Your account is awaiting approval. Contact us to unlock the files.'
-    )
-  }
-  c.set('user', user)
+export async function requireActiveSubscriber(_c: AuthContext, next: Next) {
   await next()
 }
