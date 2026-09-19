@@ -1,1 +1,0 @@
-import{a as e}from"./framer-motion-Bo09nbDF.js";import{t}from"./AuthShell-CYEWyRO8.js";var n=e();function r(){return(0,n.jsx)(t,{mode:`signup`})}export{r as default};
