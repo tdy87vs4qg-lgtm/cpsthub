@@ -73,7 +73,7 @@ const viewerBrandTheme = `
 // ---------------------------------------------------------------------------
 // PUBLIC / EXTERIOR EXPERIENCE — the "تيسير" React SPA.
 //
-// The exterior (home, login, signup, subscription) is a Vite/React single-page
+// The exterior (home, login, signup) is a Vite/React single-page
 // app. Its hashed JS/CSS assets are served as static files from /react/* (the
 // Cloudflare Pages asset layer resolves those before the worker runs); the SPA
 // *shell* HTML is returned by the worker for every client-routed public path so
@@ -82,7 +82,7 @@ const viewerBrandTheme = `
 // The flow is: exterior (تيسير) → login → internal drive. The login/signup
 // forms POST to /api/auth/* (below); on success the browser hard-navigates to
 // /library (or /admin), handing control to the ORIGINAL internal experience.
-const PUBLIC_SPA_ROUTES = ['/', '/login', '/signup', '/subscription']
+const PUBLIC_SPA_ROUTES = ['/', '/login', '/signup']
 for (const route of PUBLIC_SPA_ROUTES) {
   app.get(route, (c) => c.html(spaShell))
 }
@@ -132,8 +132,8 @@ app.get('/shelf', (c) => c.html(shelfPage))
 //
 // ROUTING: no _redirects / _routes.json change is needed. "/shelf/folder" is a
 // literal Hono path with no wildcard above it, and the SPA shell is only
-// returned for the four exact paths in PUBLIC_SPA_ROUTES ('/', '/login',
-// '/signup', '/subscription') — there is no app.get('*') catch-all — so
+// returned for the three exact paths in PUBLIC_SPA_ROUTES ('/', '/login',
+// '/signup') — there is no app.get('*') catch-all — so
 // nothing can swallow this route. The public/_redirects "/* /index.html 200"
 // line is the Pages ASSET-layer fallback, which only runs when neither a
 // static asset nor the worker answers; dist/_routes.json sends every path

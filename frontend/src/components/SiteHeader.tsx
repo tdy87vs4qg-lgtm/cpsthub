@@ -7,7 +7,6 @@ import { useSession } from '../lib/useSession'
 
 const links = [
   { to: '/', label: 'الرئيسية' },
-  { to: '/subscription', label: 'ماذا ستحصل؟' },
 ]
 
 export default function SiteHeader() {

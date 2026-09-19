@@ -74,9 +74,6 @@ export default function AuthShell({ mode }: AuthShellProps) {
               </p>
 
               <div className="auth-card__actions mt-9">
-                <Link className="button-primary" to="/subscription">
-                  تعرّف على الاشتراك
-                </Link>
                 <Link className="button-ghost" to={isSignup ? '/login' : '/signup'}>
                   {isSignup ? 'لديك حساب؟ سجّل الدخول' : 'ليس لديك حساب؟ أنشئ واحدًا'}
                 </Link>

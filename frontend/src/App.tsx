@@ -13,14 +13,13 @@ import { LazyAnimatePresence } from './lib/lazyMotion'
 const HomePage = lazy(() => import('./pages/HomePage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const SignupPage = lazy(() => import('./pages/SignupPage'))
-const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage'))
 
 export default function App() {
   const location = useLocation()
 
   // The prototype home page ships its own header inside HomePage, so the
   // app-shell header would render twice on "/". Hide the shell header there
-  // only — /login, /signup and /subscription still need it.
+  // only — /login and /signup still need it.
   const isHomeRoute = location.pathname === '/'
 
   return (
@@ -34,7 +33,6 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/subscription" element={<SubscriptionPage />} />
             <Route path="*" element={<HomePage />} />
           </Routes>
         </LazyAnimatePresence>
