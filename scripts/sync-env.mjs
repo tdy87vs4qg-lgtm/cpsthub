@@ -34,17 +34,6 @@ const KEYS = [
   'SESSION_SECRET',
   'ADMIN_SEED_EMAIL',
   'ADMIN_SEED_PASSWORD',
-  // Google OAuth 2.0 "Sign in with Google" — CLIENT ID credentials (a different
-  // credential from GOOGLE_SERVICE_ACCOUNT_JSON above, which is Drive-only).
-  // Needed so `wrangler pages dev` exposes them as env bindings locally; the
-  // start route reads them via src/lib/google-oauth.ts and the callback route
-  // via src/lib/google-oauth-callback.ts. GOOGLE_OAUTH_CLIENT_SECRET is a TRUE
-  // secret used only for the server-side code→token exchange; it is copied
-  // verbatim into the git-ignored `.dev.vars` and NEVER logged. Empty values are
-  // simply skipped below, so listing them here is safe before they are filled in.
-  'GOOGLE_OAUTH_CLIENT_ID',
-  'GOOGLE_OAUTH_CLIENT_SECRET',
-  'GOOGLE_OAUTH_REDIRECT_URI',
 ]
 
 if (!existsSync(envPath)) {

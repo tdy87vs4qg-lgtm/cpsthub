@@ -26,26 +26,3 @@ SESSION_SECRET=
 # idempotently provisioned as an active admin in D1 (no hardcoded accounts).
 ADMIN_SEED_EMAIL=
 ADMIN_SEED_PASSWORD=
-
-# --- Google OAuth 2.0 "Sign in with Google" (Part A: start leg,
-#     Part B-1: callback receive leg) ---
-# These are the OAuth 2.0 CLIENT ID credentials from Google Cloud Console
-# (APIs & Services → Credentials → OAuth 2.0 Client IDs). They are a DIFFERENT
-# credential from GOOGLE_SERVICE_ACCOUNT_JSON above, which is only used to read
-# Google Drive. Read from env bindings ONLY — never hardcoded, never logged.
-#
-# The OAuth client id. It is public by design (Google's spec puts it in the
-# authorization URL the browser is redirected to).
-GOOGLE_OAUTH_CLIENT_ID=
-# The OAuth CLIENT SECRET — a TRUE SECRET. Required by Part B-1 (the callback)
-# for the server-to-server code→token exchange. It is sent ONLY in the POST body
-# to Google's token endpoint over TLS: never logged, never returned in a
-# response, never sent to the browser. When unset,
-# GET /api/auth/google/callback returns 503 OAUTH_NOT_CONFIGURED.
-GOOGLE_OAUTH_CLIENT_SECRET=
-# The exact callback URI registered on that OAuth client. It must match
-# byte-for-byte or Google answers with redirect_uri_mismatch (Google re-checks
-# it during the token exchange too). There is NO hardcoded fallback: when unset,
-# GET /api/auth/google returns 503 OAUTH_NOT_CONFIGURED. Example (local dev):
-#   http://localhost:3000/api/auth/google/callback
-GOOGLE_OAUTH_REDIRECT_URI=

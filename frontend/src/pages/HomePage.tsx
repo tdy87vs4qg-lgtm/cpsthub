@@ -13,20 +13,16 @@
 //     from /static/prototype/ while this page is mounted.
 //
 // NO APP LOGIC LIVES IN THIS FILE AND NOTHING WAS TOUCHED:
-// Google login / OAuth, sessions, cookies, Google Drive, the Cloudflare
-// Worker, D1/KV, secrets and wrangler config are all untouched and still fully
-// wired up elsewhere:
+// sessions, cookies, Google Drive, the Cloudflare Worker, D1/KV, secrets and
+// wrangler config are all untouched and still fully wired up elsewhere:
 //   • frontend/src/components/SiteHeader.tsx   → session-aware header
 //   • frontend/src/lib/useSession.ts           → reads the server session
 //   • frontend/src/components/AuthShell.tsx    → login / signup screens
-//   • frontend/src/components/GoogleSignInButton.tsx
-//   • src/lib/google-auth.ts, google-oauth.ts, google-oauth-callback.ts,
-//     session.ts, guards.ts, drive.ts, users.ts
+//   • src/lib/session.ts, guards.ts, drive.ts, users.ts
 //   • src/routes/auth.ts  (/api/auth/*)
 // ─────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from 'react'
-import GoogleSignInButton from '../components/GoogleSignInButton'
 
 /** Where the prototype's own files were placed, verbatim, inside public/. */
 const PROTO = '/static/prototype'
@@ -34,7 +30,7 @@ const PROTO = '/static/prototype'
 export default function HomePage() {
   // ── Sign-up tab step (LOCAL UI STATE ONLY) ──────────────────────────────
   // 1 = the decorative First name / Last name fields + "Continue"
-  // 2 = the real "Sign up with Google" button (same OAuth flow as login).
+  // 2 = the link through to the real sign-up page.
   // The two name fields are NEVER read, stored, or sent anywhere: no state
   // holds their values, no fetch is made, the backend and the database are
   // not involved at all. They exist purely for the visual flow.
@@ -420,18 +416,18 @@ export default function HomePage() {
                   <button className="tab" data-tab="signup" role="tab" aria-selected="false">Create an account</button>
                 </div>
 
-                {/* LOGIN TAB — real Google OAuth, no fake fields.
+                {/* LOGIN TAB — links through to the real sign-in page.
                     NOTE: className is a CONSTANT string on purpose. The
                     prototype's own script.js owns the .active class on the
                     panels; because React never changes this prop between
                     renders it never rewrites the attribute, so the vanilla
                     tab switching keeps working exactly as designed. */}
                 <div className="tab-panel active" data-panel="login">
-                  <p className="auth-note">Sign in with your Google account — in one step, with no password.</p>
-                  <GoogleSignInButton />
+                  <p className="auth-note">Sign in to تيسير with your email address and password.</p>
+                  <a className="btn btn-primary btn-block" href="/login" rel="external" data-no-spa="true">Sign in</a>
                 </div>
 
-                {/* SIGNUP TAB — step 1 (decorative name fields) → step 2 (real Google OAuth) */}
+                {/* SIGNUP TAB — step 1 (decorative name fields) → step 2 (link to the sign-up page) */}
                 <div className="tab-panel" data-panel="signup">
                   {signupStep === 1 ? (
                     <form
@@ -464,11 +460,16 @@ export default function HomePage() {
                     </form>
                   ) : (
                     <div className="auth-step">
-                      <p className="auth-note">Finish creating your account with your Google account — in one step, with no password.</p>
-                      <GoogleSignInButton
-                        label="Create your account with your Google account"
-                        ariaLabel="Create your account with your Google account"
-                      />
+                      <p className="auth-note">Finish creating your account on the sign-up page.</p>
+                      <a
+                        className="btn btn-primary btn-block"
+                        href="/signup"
+                        rel="external"
+                        data-no-spa="true"
+                        aria-label="Create your account"
+                      >
+                        Create your account
+                      </a>
                       <button
                         type="button"
                         className="link auth-back"

@@ -272,44 +272,11 @@ html[data-theme="dark"] ::selection { background: rgba(11, 131, 119, .22); color
 .auth-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(115deg, rgba(255,255,255,.08), transparent 22%); pointer-events: none; }
 .auth-card__glow { position: absolute; left: 0; top: 0; width: 12rem; height: 12rem; border-radius: 50%; background: rgba(110,231,220,.14); filter: blur(60px); pointer-events: none; }
 .auth-card h2 { font-family: "Noto Kufi Arabic"; letter-spacing: -.045em; }
-/* GOOGLE-ONLY SIGN-IN (step 3): the card no longer contains a form, so it can
-   breathe a little more and centre its single action. The email/password field
-   styles (.auth-field*) were removed with the form itself. */
-.auth-card--google { padding-block: clamp(2rem, 5vw, 3.4rem); }
-
-/* ── "سجّل الدخول بحساب Google" button ───────────────────────
-   A plain <a href="/api/auth/google">, so the click is a real top-level
-   navigation (required for the 302 to Google and for the SameSite=Lax
-   `bac_oauth_state` cookie). Styled to match the site's pill buttons while
-   keeping Google's own white-surface + four-colour "G" identity. */
-.google-signin-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .85rem;
-  width: 100%;
-  min-height: 3.7rem;
-  padding: .95rem 1.4rem;
-  border: 1px solid rgba(255,255,255,.16);
-  border-radius: 999px;
-  background: linear-gradient(160deg, #ffffff, #eef3f8);
-  color: #10202f;
-  font-size: 1rem;
-  font-weight: 800;
-  text-decoration: none;
-  box-shadow: 0 14px 40px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.9);
-  transition: transform .28s ease, box-shadow .28s ease, filter .28s ease;
-}
-.google-signin-button:hover { transform: translateY(-3px); box-shadow: 0 20px 52px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.9); }
-.google-signin-button:active { transform: translateY(-1px); }
-.google-signin-button:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(110,231,220,.35), 0 14px 40px rgba(0,0,0,.32); }
-.google-signin-button[aria-disabled="true"] { pointer-events: none; filter: saturate(.55) opacity(.72); }
-/* The glyph keeps its own LTR box so the RTL page never mirrors the mark. */
-.google-signin-button__glyph { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
-.google-signin-button__label { line-height: 1.4; }
-@media (prefers-reduced-motion: reduce) {
-  .google-signin-button, .google-signin-button:hover, .google-signin-button:active { transform: none; transition: none; }
-}
+/* The card holds no form, so it can breathe a little more and centre its
+   actions. The email/password field styles (.auth-field*) were removed with
+   the form itself. */
+.auth-card--simple { padding-block: clamp(2rem, 5vw, 3.4rem); }
+.auth-card__actions { display: flex; flex-direction: column; align-items: stretch; gap: .85rem; }
 
 /* ── Eye-tracking mascot (code-drawn SVG fox) ───────────────── */
 /* Promoted to its own compositor layer so it stays crisp and never re-lays-out
@@ -582,202 +549,6 @@ html[data-theme="light"] .auth-card .text-white\/70 { color: inherit !important;
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   IN-APP BROWSER NOTICE (InAppBrowserNotice.tsx)
-   Only ever rendered inside an embedded web view (TikTok / Instagram /
-   Facebook / Telegram …), where Google's OAuth consent screen refuses to
-   load. Styled with the same glass + cyan/gold brand language as the auth
-   card, fully RTL, and readable in both the dark and light palettes.
-   ══════════════════════════════════════════════════════════════════ */
-.inapp-notice {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  padding: clamp(1rem, 4vw, 2rem);
-  overflow-y: auto;
-}
-.inapp-notice__backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(3, 9, 17, .78);
-  backdrop-filter: blur(10px) saturate(115%);
-}
-html[data-theme="light"] .inapp-notice__backdrop { background: rgba(8, 21, 33, .55); }
-
-.inapp-notice__panel {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 34rem;
-  padding: clamp(1.5rem, 5vw, 2.5rem);
-  border: 1px solid rgba(110, 231, 220, .22);
-  border-radius: 28px;
-  background: linear-gradient(145deg, rgba(18, 36, 50, .97), rgba(7, 19, 31, .97));
-  box-shadow: 0 35px 100px rgba(0, 0, 0, .5), inset 0 1px rgba(255, 255, 255, .1);
-  text-align: right;
-  animation: inapp-notice-in .45s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.inapp-notice__panel:focus { outline: none; }
-html[data-theme="light"] .inapp-notice__panel {
-  border-color: rgba(11, 131, 119, .28);
-  background: linear-gradient(145deg, #ffffff, #eef4fc);
-  box-shadow: 0 30px 80px rgba(8, 21, 33, .22), inset 0 1px rgba(255, 255, 255, .9);
-}
-
-.inapp-notice__glow {
-  position: absolute;
-  right: 1.5rem;
-  top: -2rem;
-  width: 12rem;
-  height: 12rem;
-  border-radius: 50%;
-  background: rgba(110, 231, 220, .18);
-  filter: blur(60px);
-  pointer-events: none;
-}
-html[data-theme="light"] .inapp-notice__glow { background: rgba(11, 131, 119, .14); }
-
-.inapp-notice__icon {
-  display: grid;
-  place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: 18px;
-  border: 1px solid rgba(110, 231, 220, .24);
-  background: linear-gradient(145deg, rgba(110, 231, 220, .16), rgba(255, 255, 255, .03));
-  color: var(--cyan);
-}
-html[data-theme="light"] .inapp-notice__icon {
-  border-color: rgba(11, 131, 119, .22);
-  background: rgba(11, 131, 119, .09);
-}
-
-.inapp-notice__title {
-  margin: 1.4rem 0 0;
-  font: 800 clamp(1.35rem, 4.4vw, 1.75rem)/1.55 "Noto Kufi Arabic", "Tajawal", sans-serif;
-  letter-spacing: -.03em;
-  color: var(--text-strong);
-}
-.inapp-notice__body {
-  margin: .9rem 0 0;
-  font-size: 1rem;
-  line-height: 2;
-  color: var(--text-base);
-}
-.inapp-notice__reason {
-  margin: .7rem 0 0;
-  font-size: .9rem;
-  line-height: 1.9;
-  color: var(--text-muted);
-}
-
-.inapp-notice__steps {
-  margin: 1.3rem 0 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: inapp-step;
-  display: grid;
-  gap: .6rem;
-}
-.inapp-notice__steps li {
-  counter-increment: inapp-step;
-  display: flex;
-  align-items: flex-start;
-  gap: .75rem;
-  padding: .75rem .9rem;
-  border: 1px solid var(--hairline);
-  border-radius: 14px;
-  background: var(--surface);
-  font-size: .92rem;
-  line-height: 1.75;
-  color: var(--text-base);
-}
-.inapp-notice__steps li::before {
-  content: counter(inapp-step);
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border-radius: 50%;
-  background: rgba(239, 196, 122, .16);
-  color: var(--gold);
-  font: 800 .8rem/1 "Noto Kufi Arabic", "Tajawal", sans-serif;
-}
-
-.inapp-notice__url {
-  margin: 1.2rem 0 0;
-  padding: .8rem .9rem;
-  border: 1px dashed var(--hairline-strong);
-  border-radius: 12px;
-  background: var(--surface-2);
-  color: var(--text-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: .78rem;
-  line-height: 1.6;
-  word-break: break-all;
-  user-select: all;
-  -webkit-user-select: all;
-}
-
-.inapp-notice__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .7rem;
-  margin-top: 1.3rem;
-}
-.inapp-notice__dismiss {
-  flex: 1 1 auto;
-  min-height: 3rem;
-  padding: .85rem 1.2rem;
-  border-radius: 999px;
-  font: 700 .95rem/1.4 "Tajawal", sans-serif;
-  cursor: pointer;
-  transition: transform .25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow .25s ease, background-color .25s ease;
-}
-.inapp-notice__copy {
-  border: 1px solid transparent;
-  background: linear-gradient(135deg, var(--cyan), #9df8ee);
-  color: #06121d;
-  box-shadow: 0 14px 34px rgba(110, 231, 220, .22);
-}
-.inapp-notice__copy:hover { transform: translateY(-2px); }
-.inapp-notice__copy:active { transform: translateY(0); }
-.inapp-notice__dismiss {
-  border: 1px solid var(--hairline-strong);
-  background: transparent;
-  color: var(--text-muted);
-}
-.inapp-notice__dismiss:hover { background: var(--surface); color: var(--text-base); }
-.inapp-notice__dismiss:focus-visible {
-  outline: 2px solid var(--cyan);
-  outline-offset: 2px;
-}
-
-@keyframes inapp-notice-in {
-  from { opacity: 0; transform: translateY(18px) scale(.97); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* Respect the OS "reduce motion" setting: the notice appears instantly and
-   the buttons stop lifting on hover. Content and behaviour are unchanged. */
-@media (prefers-reduced-motion: reduce) {
-  .inapp-notice__panel { animation: none; }
-  .inapp-notice__copy,
-  .inapp-notice__copy:hover,
-  .inapp-notice__copy:active,
-  .inapp-notice__dismiss,
-  .inapp-notice__dismiss:hover { transform: none; transition: none; }
-}
-
-@media (max-width: 420px) {
-  .inapp-notice__actions { flex-direction: column; }
-  .inapp-notice__copy,
-  .inapp-notice__dismiss { width: 100%; }
-}
-
-/* ══════════════════════════════════════════════════════════════════
    REDESIGN OVERRIDES — PROTOTYPE SKIN (appearance only)
 
    The rules above were authored for a dark, cinematic, photo-backed
@@ -916,22 +687,8 @@ html[data-theme="dark"] .offering-card,
 html[data-theme="dark"] .stat-hero { background: #171923; }
 .auth-card__glow, .decision-card__shine { display: none; }
 
-/* ---- Google sign-in button ------------------------------------- */
-.google-signin-button {
-  font-family: 'Almarai', sans-serif;
-  font-weight: 800;
-  border-radius: var(--radius-btn);
-  background: var(--bg-elevated);
-  color: var(--text-strong);
-  border: 1.5px solid var(--border-strong);
-  box-shadow: var(--shadow-sm);
-}
-.google-signin-button:hover { border-color: var(--purple); box-shadow: var(--shadow-md); }
-html[data-theme="dark"] .google-signin-button { background: #1F2231; }
-
-/* ---- prototype auth card: Google-only login / 2-step sign-up ----
-   Tiny layout helpers for the prototype's .auth-card tab panels after the
-   fake email/password inputs were replaced by the real Google button.
+/* ---- prototype auth card: 2-step sign-up ------------------------
+   Tiny layout helpers for the prototype's .auth-card tab panels.
    Purely presentational — the card, tabs, fields and SVG illustrations keep
    the prototype's own styling untouched. */
 .auth-card .auth-step {
@@ -956,49 +713,6 @@ html[data-theme="dark"] .google-signin-button { background: #1F2231; }
   font-family: 'Almarai', sans-serif;
   cursor: pointer;
 }
-
-/* ---- copy-link / share panel (the in-app-browser notice) ------- */
-.inapp-notice__backdrop { background: rgba(17, 17, 17, .55); }
-html[data-theme="dark"] .inapp-notice__backdrop { background: rgba(6, 7, 11, .72); }
-.inapp-notice__panel {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  box-shadow: var(--shadow-lg);
-  color: var(--text-strong);
-  font-family: 'Almarai', sans-serif;
-}
-html[data-theme="dark"] .inapp-notice__panel { background: #171923; }
-.inapp-notice__glow { display: none; }
-.inapp-notice__icon { background: var(--purple-soft); color: var(--purple); }
-.inapp-notice__title { color: var(--text-strong); font-weight: 800; }
-.inapp-notice__body { color: var(--text-base); }
-.inapp-notice__reason, .inapp-notice__steps { color: var(--text-muted); }
-.inapp-notice__url {
-  background: var(--bg-input);
-  border: 1px solid var(--border-input);
-  border-radius: 12px;
-  color: var(--text-base);
-}
-.inapp-notice__copy {
-  background: var(--purple);
-  color: #FFFFFF;
-  border: 0;
-  border-radius: var(--radius-btn);
-  font-family: 'Almarai', sans-serif;
-  font-weight: 800;
-  box-shadow: var(--shadow-purple);
-}
-.inapp-notice__copy:hover { background: var(--purple-dark); }
-.inapp-notice__dismiss {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-btn);
-  font-family: 'Almarai', sans-serif;
-  font-weight: 700;
-}
-.inapp-notice__dismiss:hover { color: var(--purple); border-color: var(--purple); }
 
 /* ---- React theme toggle ----------------------------------------
    The exterior keeps its OWN React toggle component (ThemeToggle.tsx,

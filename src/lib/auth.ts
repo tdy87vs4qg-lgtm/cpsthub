@@ -122,10 +122,8 @@ export async function isApproved<E extends HonoEnv = { Bindings: Env }>(
  * Local `http://localhost` dev correctly resolves to NOT secure, so the cookie
  * still works there.
  *
- * Exported (was module-private) so other server-side cookie writers — e.g. the
- * short-lived Google OAuth CSRF `state` cookie in src/lib/google-oauth.ts —
- * reuse the exact same detection instead of re-implementing it. Behaviour is
- * unchanged for all existing callers.
+ * Exported (was module-private) so other server-side cookie writers reuse the
+ * exact same detection instead of re-implementing it.
  */
 export function isSecureRequest(c: Context<{ Bindings: Env }>): boolean {
   const xfProto = (c.req.header('x-forwarded-proto') || '').split(',')[0]?.trim().toLowerCase()

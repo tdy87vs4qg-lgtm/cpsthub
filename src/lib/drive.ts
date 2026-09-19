@@ -68,30 +68,6 @@ export interface Env {
   ADMIN_SEED_EMAIL?: string
   ADMIN_SEED_PASSWORD?: string
 
-  // --- Google OAuth 2.0 "Sign in with Google" (Part A: start leg,
-  //     Part B-1: callback receive leg) ------------------------------------
-  // These are the OAuth 2.0 **Client ID** credentials, a DIFFERENT credential
-  // from GOOGLE_SERVICE_ACCOUNT_JSON above (which is only for reading Drive).
-  // Read from env bindings ONLY (Cloudflare vars/secrets or .dev.vars) — never
-  // hardcoded, never logged. Consumed exclusively by src/lib/google-oauth.ts
-  // (start leg) and src/lib/google-oauth-callback.ts (callback leg).
-  //
-  // GOOGLE_OAUTH_CLIENT_ID: the OAuth client id. Public by design — Google's
-  // spec places it in the authorization URL we redirect to.
-  GOOGLE_OAUTH_CLIENT_ID?: string
-  // GOOGLE_OAUTH_CLIENT_SECRET: TRUE SECRET. Used ONLY by the Part B-1 callback
-  // for the server-to-server code→token exchange (confidential-client
-  // Authorization Code grant). It is sent solely in the POST body to Google's
-  // token endpoint over TLS: never logged, never included in any response, and
-  // never sent to the browser. Absent → the callback answers 503
-  // OAUTH_NOT_CONFIGURED (the start route does not need it).
-  GOOGLE_OAUTH_CLIENT_SECRET?: string
-  // GOOGLE_OAUTH_REDIRECT_URI: the exact callback URI registered on the Google
-  // Cloud OAuth client (must match byte-for-byte, else redirect_uri_mismatch).
-  // No hardcoded fallback: a missing value makes the start route fail loudly.
-  // Google re-validates it during the token exchange, so both legs read the
-  // same binding.
-  GOOGLE_OAUTH_REDIRECT_URI?: string
 }
 
 /** A folder or file, normalised and safe to send to the browser. */
