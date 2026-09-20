@@ -79,10 +79,9 @@
   var _deepLinkViewer = false; // true when viewer was opened via a direct ?view= load
 
   // Persistent file cache (IndexedDB, via file-cache.js). Optional — everything
-  // still works if it's unavailable, just without the instant-reopen boost. The
-  // cache is tied to the live session/device and only ever stores bytes the
-  // Worker already agreed to serve (the first open of any file still goes
-  // through the server-side auth/subscription/device gate).
+  // still works if it's unavailable, just without the instant-reopen boost. It
+  // is scoped per browser profile (no accounts exist) and only ever stores bytes
+  // the Worker already agreed to serve.
   var FC = window.FileCache || null;
   // Ask the browser ONCE per page-session to mark our origin storage as
   // persistent, so the IndexedDB file cache is not silently evicted under
@@ -344,10 +343,9 @@
         if (hit && hit.data && hit.data.id) {
           metaCache[id] = hit.data;
           // Serve instantly from cache, and refresh the meta in the background.
-          // A failed refresh (expired session, 401/402/403, offline, timeout) is
-          // IGNORED: it must never destroy cached content. Access stays enforced
-          // server-side on every byte request, and the cache is only ever wiped
-          // on an explicit logout or a genuine user-identity change.
+          // A failed refresh (401/402/403, offline, timeout) is IGNORED: it must
+          // never destroy cached content. Access stays enforced server-side on
+          // every byte request, and the cache is only ever wiped explicitly.
           if (!hit.fresh) {
             fetchMetaNetwork(id).catch(function () { /* keep cache intact */ });
           }
@@ -376,9 +374,9 @@
 
   // Resolve a same-origin URL the viewer can render for a file's bytes. This is
   // where the persistent file cache plugs in WITHOUT weakening security:
-  //   1. Try the IndexedDB cache (only returns bytes stamped with the CURRENT
-  //      session key — see file-cache.js). If present → build an in-memory Blob
-  //      URL and render from that. The file never touches Downloads.
+  //   1. Try the IndexedDB cache (per-browser scope — see file-cache.js). If
+  //      present → build an in-memory Blob URL and render from that. The file
+  //      never touches Downloads.
   //   2. On a cache miss, hand the viewer the GATED same-origin content URL
   //      STRAIGHT AWAY so PDF.js / <img> / <video> can stream (and Range-request)
   //      it — first paint no longer waits for 100% of the bytes. The full-file
@@ -1769,20 +1767,14 @@
 
     if (els.retry) els.retry.addEventListener('click', function () { navigate(state.folder, { replace: true }); });
 
-    // Log out — the ONE explicit user action that wipes the persistent cache
-    // (so no bytes survive a logout). Clear first, then invalidate the session
-    // server-side and return to sign-in.
+    // Leftover log-out control (there are no accounts any more). It deliberately
+    // NO LONGER wipes the file cache: with no user there is nothing to log out
+    // of, and dropping an anonymous visitor's cached files on a stray click is
+    // exactly the invalidation this cache must never do.
     if (els.logout) els.logout.addEventListener('click', function () {
       if (els.logout.disabled) return;
       els.logout.disabled = true;
-      var clearCache = (FC && FC.supported)
-        ? FC.clearAll('explicit-logout')
-        : Promise.resolve();
-      Promise.resolve(clearCache)
-        .catch(function () {})
-        .then(function () {
-          return fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
-        })
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
         .then(function () { window.location.href = '/login'; })
         .catch(function () { window.location.href = '/login'; });
     });
@@ -1859,13 +1851,10 @@
     var start = folderFromUrl() || 'root';
     var deepView = viewFromUrl();
 
-    // Bind the persistent cache to the CURRENT user identity BEFORE touching it,
-    // so the persistent-listing paint uses the right session key. We key off the
-    // gated /api/auth/me snapshot (user.id only). A wipe happens ONLY when a
-    // genuinely DIFFERENT user.id binds. If the session is gone (expired /
-    // logged out elsewhere / /me failed) the cache is simply left UNBOUND — the
-    // stored files are preserved and become available again as soon as the same
-    // user signs back in.
+    // The persistent cache is scoped anonymously (per browser profile), so
+    // there is no identity to resolve and no /api/auth/me round-trip to wait
+    // for: it is live from the first read. Starting the app is therefore never
+    // gated on the cache binding.
     function startApp() {
       navigate(start, { replace: true });
       // Deep link with ?view=<id> → open the SPA viewer over the folder. Mark it
@@ -1874,54 +1863,13 @@
     }
 
     if (FC && FC.supported) {
-      // 1. OPTIMISTIC PRE-BIND (no network): adopt the session key persisted in
-      //    the cache's own meta store. It was only ever written after a genuine
-      //    server-authenticated bind, so re-adopting it lets cached listings
-      //    AND files serve instantly — even offline, even if /api/auth/me is
-      //    slow or briefly failing. Previously the whole cache stayed DEAD
-      //    (every getFile() → MISS) until /me answered, which is exactly why a
-      //    flaky first request nuked the "instant reopen" experience on iOS.
-      var preBind = (FC.bindStoredSession ? FC.bindStoredSession() : Promise.resolve(null))
-        .catch(function () { return null; });
-      preBind.then(function (storedKey) {
-        if (storedKey) requestPersistentStorage();
-        startApp();
-        // 2. BACKGROUND RECONCILIATION with the server. Outcomes:
-        //    • authenticated as same user  → no-op (cache kept).
-        //    • authenticated as DIFFERENT user → bindSession wipes (security).
-        //    • explicit "authenticated:false" → detach (bytes kept, no wipe).
-        //    • network error / 5xx / malformed → IGNORED: the optimistic bind
-        //      stands, because a transient failure must never disable or wipe
-        //      the cache (and must never look like a logout).
-        fetch('/api/auth/me', { credentials: 'same-origin' })
-          .then(function (r) {
-            if (!r.ok) throw new Error('me HTTP ' + r.status);
-            return r.json();
-          })
-          .then(function (data) {
-            if (!data || data.ok !== true) {
-              try { console.log('[auth] /me malformed → keeping optimistic cache bind'); } catch (e) {}
-              return;
-            }
-            if (data.authenticated && data.user) {
-              var key = FC.deriveKey(data.user);
-              try { console.log('[auth] /me authenticated user=' + (data.user.id || '?') + ' → bind'); } catch (e) {}
-              return FC.bindSession(key).then(function () {
-                if (key) requestPersistentStorage();
-              });
-            }
-            // The server EXPLICITLY says there is no session. Detach (serve
-            // nothing until the same user signs back in) — the bytes are kept.
-            try { console.log('[auth] /me authenticated:false → detach cache (bytes kept)'); } catch (e) {}
-            return FC.bindSession(null);
-          })
-          .catch(function (e) {
-            try { console.log('[auth] /me failed (' + (e && e.message) + ') → keeping optimistic bind'); } catch (e2) {}
-          });
-      });
-    } else {
-      startApp();
+      requestPersistentStorage();
+      // Records the scope in the cache's meta store; never blocks the app.
+      if (FC.bindStoredSession) {
+        try { FC.bindStoredSession().catch(function () {}); } catch (e) {}
+      }
     }
+    startApp();
 
     // Fire-and-forget: requested once, never awaited by any caller.
     function requestPersistentStorage() {

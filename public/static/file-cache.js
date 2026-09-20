@@ -12,29 +12,22 @@
    SECURITY MODEL (this must not weaken the existing file-link security)
    --------------------------------------------------------------------
    • The FIRST time a file (or listing) is requested it is ALWAYS fetched through
-     the Worker, which performs the full server-side auth / subscription / device
-     gate. Only bytes the server AGREED to serve are ever written to the cache.
-   • The cache is TIED to the STABLE user identity: every entry is stamped with
-     a `sessionKey` derived ONLY from user.id (obtained from the gated
-     /api/auth/me). Volatile fields (role / approved) are deliberately NOT part
-     of the key, so a user's cached files survive across browser restarts and
-     across approved/role changes — they reopen instantly instead of being
-     re-downloaded every session.
-     - The whole cache is cleared in EXACTLY two cases: an EXPLICIT user logout
-       (clearAll), or a genuine user-identity change (a different authenticated
-       user.id binds — see FileCache.bindSession). NOTHING else wipes it: HTTP
-       401 / 402 / 403 responses, session expiry, timeouts and network errors
-       leave every stored file untouched, because such failures are frequently
-       transient and losing the whole cache over one is unacceptable.
-     - Entries whose `sessionKey` (user.id) does not match the live user are
-       ignored and purged, so the cache can never serve content across users.
-     - Access enforcement stays on the SERVER: the first fetch of any file/listing
-       still passes the full session + device + subscription gate in the Worker.
-       The cache only ever holds bytes the server already agreed to serve, so
-       keeping it across sessions does not weaken access control.
+     the Worker. Only bytes the server AGREED to serve are ever written here.
+   • There are NO accounts, sessions or signed-in users in this app, so the cache
+     is scoped to a single fixed ANON_SCOPE instead of a user id. Isolation comes
+     from the browser itself: IndexedDB is partitioned per origin AND per browser
+     profile, so one visitor can never read another visitor's cached bytes — a
+     per-visitor key would add nothing on top of that.
+   • Because the scope is constant it can never "change", so the cache is NEVER
+     implicitly wiped. HTTP errors, timeouts and network failures all leave every
+     stored file untouched: such failures are usually transient and losing the
+     whole cache over one is unacceptable. The ONLY wipe is an explicit
+     FileCache.clearAll() call.
+   • Access enforcement stays on the SERVER: the first fetch of any file/listing
+     still goes through the Worker route, so the cache only ever holds bytes the
+     server already agreed to serve.
    • Nothing secret (tokens, API keys) is ever stored — only the already-served
-     bytes + safe metadata, exactly what the authorised browser already held in
-     memory.
+     bytes + safe metadata, exactly what the browser already held in memory.
 
    STORAGE HYGIENE
    ---------------
@@ -100,7 +93,10 @@
   var LISTING_FRESH_MS = 5 * 60 * 1000;     // 5 minutes
 
   var _dbPromise = null;
-  var _sessionKey = null;   // active session identity; null = signed-out / unknown
+  // Fixed scope for an account-less site. IndexedDB is already isolated per
+  // origin + browser profile, so this is only a namespace tag on each row.
+  var ANON_SCOPE = 'anon';
+  var _sessionKey = ANON_SCOPE;   // always bound; never null
   var _supported = ('indexedDB' in window);
 
   /* ------------------------------------------------------------------- log
@@ -327,18 +323,14 @@
     });
   }
 
-  /* -------------------------------------------------- session binding / keys
-     The cache is bound to exactly one STABLE user identity (user.id). We persist
-     the active sessionKey in the meta store; the stored bytes are wiped ONLY
-     when a genuinely DIFFERENT user.id binds (see bindSession) or on an explicit
-     logout (see clearAll). Session expiry, auth/authorization errors (401 / 402 /
-     403), timeouts and network failures NEVER wipe anything. */
-  function readStoredSessionKey() {
-    return tx(STORE_META, 'readonly').then(function (o) {
-      return reqToPromise(o.store.get('session'));
-    }).then(function (row) { return row ? row.value : null; })
-      .catch(function () { return null; });
-  }
+  /* --------------------------------------------------------- scope binding
+     With no accounts there is nothing to bind: the scope is the constant
+     ANON_SCOPE and it is active from module load, so the cache is usable on the
+     very first read of the very first page-load. The meta row is still written
+     once purely so the store keeps a record of its own scope.
+
+     Nothing here ever wipes. There is no identity that can change, and HTTP
+     errors / session expiry / timeouts never invalidate stored bytes. */
   function writeStoredSessionKey(key) {
     return tx(STORE_META, 'readwrite').then(function (o) {
       o.store.put({ key: 'session', value: key });
@@ -347,91 +339,38 @@
   }
 
   /**
-   * Bind the cache to the current session identity. Pass a stable string that
-   * depends ONLY on user.id (see deriveKey below), or null when signed out.
-   *
-   * We do NOT clear the cache just because approved/role changed between
-   * sessions — the key is now identity-only, so those volatile fields never
-   * enter it. The cache is only wiped when the actual user identity changes
-   * (a genuinely different user logs in). Signing out / session expiry
-   * (key === null) leaves the stored bytes in place but detaches the live
-   * session, so getFile() serves nothing until the same user re-binds — the
-   * moment they do, their files reopen instantly again. Access on the first
-   * fetch is still enforced server-side, so keeping the cache across sessions
-   * is safe. Returns a promise that resolves when ready.
-   */
-  /**
-   * OPTIMISTIC bind from the key persisted in the meta store, WITHOUT any
-   * network round-trip. The stored key was only ever written after a genuine
-   * server-authenticated bind, so re-adopting it at startup is safe: it lets
-   * cached listings/files serve INSTANTLY (and offline) instead of the whole
-   * cache being dead until /api/auth/me answers. bindSession() reconciles
-   * later: same user → no-op; different user → wipe; explicit signed-out
-   * answer → detach (bytes kept). Resolves with the adopted key or null.
+   * Adopt the anonymous scope and record it. Kept as a function (and exported
+   * under the old names) so existing call sites need no restructuring.
+   * Resolves with the active scope; never wipes, never rejects.
    */
   function bindStoredSession() {
-    if (!_supported) return Promise.resolve(null);
-    return readStoredSessionKey().then(function (stored) {
-      if (stored) {
-        _sessionKey = stored;
-        log('session pre-bound from stored key (offline-safe)', { user: stored });
-      } else {
-        log('no stored session key (first visit or post-logout)');
-      }
-      return stored;
-    }).catch(function () { return null; });
+    _sessionKey = ANON_SCOPE;
+    if (!_supported) return Promise.resolve(_sessionKey);
+    return writeStoredSessionKey(_sessionKey)
+      .then(function () {
+        log('cache scope bound (anonymous, per-browser)', { scope: _sessionKey });
+        return _sessionKey;
+      })
+      .catch(function () { return _sessionKey; });
   }
 
-  function bindSession(key) {
-    _sessionKey = key || null;
-    if (!_supported) return Promise.resolve();
-    if (_sessionKey == null) {
-      // Signed out / expired / unknown identity: detach the live session but keep
-      // the cached bytes intact so the same user gets an instant reopen later.
-      // This is deliberately NOT a wipe — session expiry must never destroy the
-      // user's cached files.
-      log('session unbound (no wipe: identity unknown / session expired)');
-      return Promise.resolve();
-    }
-    return readStoredSessionKey().then(function (stored) {
-      if (stored === _sessionKey) {
-        // Same user.id → keep cache exactly as-is.
-        log('session bound to same user, cache kept — _sessionKey=' + _sessionKey);
-        return;
-      }
-      if (stored == null) {
-        // First bind on a fresh/empty store (or right after an explicit logout
-        // wipe): nothing to invalidate, just record the owner.
-        log('session bound (first bind, nothing to invalidate)', { user: _sessionKey });
-        return writeStoredSessionKey(_sessionKey);
-      }
-      // A genuinely DIFFERENT user's identity is now bound. This is the ONLY
-      // implicit wipe: cached content must never cross users.
-      return clearAllStores('user-identity-change: ' + stored + ' -> ' + _sessionKey)
-        .then(function () { return writeStoredSessionKey(_sessionKey); });
-    }).catch(function () {});
+  // Back-compat alias: any caller that still calls bindSession(...) simply
+  // re-affirms the anonymous scope. The argument is ignored on purpose — a
+  // null/absent identity must NOT detach or wipe the cache any more.
+  function bindSession(_ignoredKey) {
+    return bindStoredSession().then(function () {});
   }
 
-  /** Build a stable per-session cache key from the safe /me user snapshot.
-   *  The key depends ONLY on the stable user identity (user.id). Volatile
-   *  fields like `role` and `approved` are deliberately EXCLUDED: they change
-   *  between sessions (e.g. an approval flip) and would otherwise change the
-   *  key, wiping the cache or rejecting valid cached files and forcing a
-   *  re-download on every reopen. Access is still enforced server-side on the
-   *  first fetch, so a change in approved/role is caught by the Worker gate —
-   *  the cache only ever holds bytes the server already agreed to serve. */
-  function deriveKey(user) {
-    if (!user || !user.id) return null;
-    return String(user.id);
+  /** Back-compat: the cache scope no longer depends on any user object. */
+  function deriveKey() {
+    return ANON_SCOPE;
   }
 
   /* ----------------------------------------------------------------- clear
-     A full wipe happens in EXACTLY two situations:
-       (a) clearAll('explicit-logout')  — the user pressed "log out";
-       (b) bindSession() detecting a genuinely different authenticated user.id.
-     Nothing else — no HTTP 401 / 402 / 403, no session expiry, no timeout, no
-     network error — is allowed to call this. `reason` is logged so the exact
-     trigger of any wipe is always visible in the console. */
+     A full wipe now happens in EXACTLY ONE situation: an explicit
+     FileCache.clearAll() call. Nothing else — no HTTP 401 / 402 / 403, no
+     timeout, no network error — is allowed to call this. `reason` is logged so
+     the exact trigger of any wipe is always visible in the console. */
   function clearAllStores(reason) {
     log('CLEAR all stores — reason:', reason || 'unspecified');
     if (!_supported) return Promise.resolve();
@@ -445,42 +384,36 @@
   }
 
   /**
-   * Public: clear the entire cache. ONLY legitimate caller is an explicit user
-   * logout action. Never call this from an error/HTTP-status handler: auth and
-   * authorization failures (401 / 402 / 403), session expiry, timeouts and
-   * network errors must leave the stored files untouched.
+   * Public: clear the entire cache. Only an explicit user-initiated "clear
+   * cache" action should call this. Never call it from an error/HTTP-status
+   * handler: authorization failures (401 / 402 / 403), timeouts and network
+   * errors must leave the stored files untouched.
    * @param {string} [reason] trigger description, logged for traceability.
    */
   function clearAll(reason) {
-    _sessionKey = null;
-    return clearAllStores(reason || 'explicit-clearAll');
+    // The scope stays bound: a wipe empties the stores but the cache must keep
+    // working (and re-filling) immediately afterwards.
+    return clearAllStores(reason || 'explicit-clearAll')
+      .then(function () { return writeStoredSessionKey(_sessionKey); });
   }
 
   /* ------------------------------------------------------------- files API */
 
   /**
-   * Look up a cached file for the CURRENT user. Resolves to
-   * { blob, contentType, name } or null. The sessionKey match is kept, but it
-   * now compares only the user.id-based key, so a valid user's own cached files
-   * are no longer wrongly rejected when approved/role changed between sessions.
-   * Entries belonging to a genuinely different user are ignored (and
-   * opportunistically deleted).
+   * Look up a cached file. Resolves to { blob, contentType, name } or null.
+   * There is no per-user scoping any more, so a row is never rejected for its
+   * `sessionKey`: rows written by an older, user-scoped build are simply
+   * adopted into the anonymous scope instead of being thrown away.
    */
   function getFile(id) {
-    if (!_supported || !_sessionKey) {
-      log('MISS', id, _supported ? '(no bound session)' : '(indexeddb unsupported)');
+    if (!_supported) {
+      log('MISS', id, '(indexeddb unsupported)');
       return Promise.resolve(null);
     }
     return tx(STORE_FILES, 'readonly').then(function (o) {
       return reqToPromise(o.store.get(id));
     }).then(function (row) {
       if (!row) { log('MISS', id, '(not cached → will fetch from network)'); return null; }
-      if (row.sessionKey !== _sessionKey) {
-        // Entry belongs to a different user.id → drop it, serve nothing.
-        log('MISS', id, '(entry owned by another user → dropped)');
-        deleteFile(id);
-        return null;
-      }
       // Preferred (iOS-safe) format: bytes stored as an ArrayBuffer in `data`.
       // Rebuild a fresh Blob from it on every read — ArrayBuffers survive a
       // full browser restart on iOS Safari, where stored Blobs did not.
@@ -527,7 +460,11 @@
       var g = o.store.get(id);
       g.onsuccess = function () {
         var row = g.result;
-        if (row) { row.savedAt = Date.now(); o.store.put(row); }
+        if (row) {
+          row.savedAt = Date.now();
+          row.sessionKey = _sessionKey;   // adopt legacy user-scoped rows
+          o.store.put(row);
+        }
       };
       return txDone(o.tx);
     }).catch(function () {});
@@ -549,8 +486,8 @@
   }
 
   /**
-   * Store a file blob for the CURRENT session, then evict down to budget.
-   * No-op when signed out or unsupported. Never rejects (best-effort cache).
+   * Store a file blob, then evict down to budget. No-op when IndexedDB is
+   * unsupported. Never rejects (best-effort cache).
    *
    * The write is registered as a PENDING WRITE and only settles once its
    * transaction has COMMITTED, so flush() (wired to pagehide / visibilitychange
@@ -588,7 +525,7 @@
   }
 
   function putFile(id, blob, contentType, name) {
-    if (!_supported || !_sessionKey || !blob) return Promise.resolve();
+    if (!_supported || !blob) return Promise.resolve();
     var bytes = (blob && typeof blob.size === 'number') ? blob.size : 0;
     // (1) PER-FILE cap: a single file above this is never worth caching.
     if (bytes > MAX_FILE_BYTES) {
@@ -671,7 +608,7 @@
     }).then(function (rows) {
       if (!rows || !rows.length) return;
       var budget = effectiveTotalBytes();
-      // Only ever keep the current session's rows accounted; drop foreign ones.
+      // Single anonymous scope: every row counts toward the total budget.
       rows.sort(function (a, b) { return (a.savedAt || 0) - (b.savedAt || 0); }); // oldest first
       var totalBytes = 0, i;
       for (i = 0; i < rows.length; i++) totalBytes += (rows[i].bytes || 0);
@@ -723,17 +660,17 @@
   /* ---------------------------------------------------------- listings API */
 
   /**
-   * Get a cached folder listing for the CURRENT session. Resolves to
-   * { data, fresh } or null. `fresh` is false once past LISTING_FRESH_MS so the
-   * caller can show it instantly AND refresh in the background.
+   * Get a cached folder listing. Resolves to { data, fresh } or null. `fresh`
+   * is false once past LISTING_FRESH_MS so the caller can show it instantly AND
+   * refresh in the background. Rows from an older user-scoped build are served
+   * rather than discarded — the scope is no longer part of the lookup.
    */
   function getListing(key) {
-    if (!_supported || !_sessionKey) return Promise.resolve(null);
+    if (!_supported) return Promise.resolve(null);
     return tx(STORE_LISTINGS, 'readonly').then(function (o) {
       return reqToPromise(o.store.get(key));
     }).then(function (row) {
       if (!row) return null;
-      if (row.sessionKey !== _sessionKey) { deleteListing(key); return null; }
       var age = Date.now() - (row.savedAt || 0);
       return { data: row.data, fresh: age < LISTING_FRESH_MS };
     }).catch(function () { return null; });
@@ -747,7 +684,7 @@
   }
 
   function putListing(key, data) {
-    if (!_supported || !_sessionKey || !data) return Promise.resolve();
+    if (!_supported || !data) return Promise.resolve();
     var record = { key: key, sessionKey: _sessionKey, data: data, savedAt: Date.now() };
     return tx(STORE_LISTINGS, 'readwrite').then(function (o) {
       o.store.put(record);
