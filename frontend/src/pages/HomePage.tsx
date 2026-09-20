@@ -291,8 +291,10 @@ export default function HomePage() {
               <h1>Study calmly, and reach your goal.</h1>
               <p className="lead">Your baccalaureate lessons and revision in one simple, organised place.</p>
               <div className="hero-cta">
-                <a href="#account" className="btn btn-primary">
-                  <span>Start now</span>
+                {/* Goes to the server-rendered library page (/library in
+                    src/index.tsx), not the now-empty #account anchor. */}
+                <a href="/library" className="btn btn-primary">
+                  <span>Browse the library</span>
                   <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M15 6l-6 6 6 6"/>
                   </svg>
